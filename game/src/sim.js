@@ -47,6 +47,22 @@ export function weatherFor(state) {
   return pastGate ? WEATHER_DEFS.ashnight : WEATHER_DEFS.dusk;
 }
 
+export function telegraphFor(enemy) {
+  if (!enemy || enemy.stance !== STANCE.STARTUP) return null;
+  const def = ENEMY_DEFS[enemy.defId];
+  if (!def?.attack) return null;
+  const startup = Math.max(1e-6, def.attack.startup);
+  return {
+    id: enemy.id,
+    moveId: def.attack.id,
+    color: def.attack.telegraph || "ember",
+    x: enemy.x,
+    z: enemy.z,
+    radius: def.attack.range,
+    progress: Math.max(0, Math.min(1, enemy.phaseT / startup)),
+  };
+}
+
 export function lanternFlare(state) {
   const stance = state.player?.stance;
   if (stance === STANCE.ACTIVE) return 1;

@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { ZONE_DEF } from "../content/catalog.js";
-import { PHASE, STANCE, lanternLight, moteField, weatherFor } from "./sim.js";
+import { PHASE, STANCE, lanternLight, moteField, telegraphFor, weatherFor } from "./sim.js";
 
 const COLORS = {
   ground: 0x1b1712,
@@ -16,6 +16,7 @@ const COLORS = {
   blocker: 0x3a322c,
   shrine: 0xe8e0d4,
   pickup: 0xffb347,
+  ice: 0x7ec8ff,
   telegraph: 0xff6a3d,
 };
 
@@ -61,6 +62,7 @@ export function createRenderer(canvas) {
   const ghostMesh = buildPlayer({ ghost: true });
   ghostMesh.visible = false;
   const enemyMeshes = new Map();
+  const telegraphRings = new Map();
   const pickupMeshes = new Map();
   root.add(playerMesh, ghostMesh);
 
@@ -121,6 +123,23 @@ export function createRenderer(canvas) {
           cloak.material.color.setHex(telegraph ? COLORS.telegraph : rest);
           cloak.material.emissive.setHex(telegraph ? COLORS.telegraph : 0x000000);
           cloak.material.emissiveIntensity = telegraph ? 0.7 : 0;
+        }
+        let ring = telegraphRings.get(enemy.id);
+        if (!ring) {
+          ring = buildTelegraphRing();
+          telegraphRings.set(enemy.id, ring);
+          root.add(ring);
+        }
+        const tel = telegraphFor(enemy);
+        if (!tel) {
+          ring.visible = false;
+        } else {
+          const scale = tel.radius * (0.38 + 0.62 * tel.progress);
+          ring.visible = true;
+          ring.position.set(tel.x, 0.045, tel.z);
+          ring.scale.set(scale, scale, 1);
+          ring.material.color.setHex(tel.color === "ice" ? COLORS.ice : COLORS.ember);
+          ring.material.opacity = 0.22 + tel.progress * 0.5;
         }
       }
 
@@ -343,6 +362,22 @@ function buildBlocker() {
   brow.position.set(0, 1.22, 0.55);
   g.add(body, brow);
   return g;
+}
+
+function buildTelegraphRing() {
+  const mesh = new THREE.Mesh(
+    new THREE.RingGeometry(0.86, 1, 48),
+    new THREE.MeshBasicMaterial({
+      color: COLORS.ember,
+      transparent: true,
+      opacity: 0,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    }),
+  );
+  mesh.rotation.x = -Math.PI / 2;
+  mesh.visible = false;
+  return mesh;
 }
 
 function createMoteCloud() {

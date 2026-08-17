@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { ENEMY_DEFS, PLAYER_DEF, validateCatalog } from "../content/catalog.js";
-import { PHASE, STANCE, createGame, emptyInput, lanternFlare, lanternLight, moteField, serializeGhost, serializeSave, step, swingFor, weatherFor } from "../src/sim.js";
+import { PHASE, STANCE, createGame, emptyInput, lanternFlare, lanternLight, moteField, serializeGhost, serializeSave, step, swingFor, telegraphFor, weatherFor } from "../src/sim.js";
 
 function flush(state, input, seconds, hz = 60) {
   const dt = 1 / hz;
@@ -312,5 +312,31 @@ test("swing flare lights the cone only during the active window", () => {
   assert.ok(moteField(state).flash > 0);
   flush(state, emptyInput(), PLAYER_DEF.swing.active + PLAYER_DEF.swing.recovery);
   assert.equal(lanternFlare(state), 0);
+  assert.equal(state.player.hp, undefined);
+});
+
+test("ground telegraph rings name the verb during startup only", () => {
+  const state = playable("combat");
+  const wight = state.enemies.find((e) => e.defId === "ash_wight");
+  const snuffer = playable("snuffer").enemies.find((e) => e.defId === "ash_snuffer");
+  const blocker = playable("blocker").enemies.find((e) => e.defId === "ash_blocker");
+  assert.equal(telegraphFor(wight), null);
+  wight.stance = STANCE.STARTUP;
+  wight.phaseT = ENEMY_DEFS.ash_wight.attack.startup * 0.5;
+  const lunge = telegraphFor(wight);
+  assert.equal(lunge.color, "ember");
+  assert.equal(lunge.moveId, "snuff_lunge");
+  assert.ok(Math.abs(lunge.radius - ENEMY_DEFS.ash_wight.attack.range) < 0.01);
+  assert.ok(lunge.progress > 0.4 && lunge.progress < 0.6);
+  snuffer.stance = STANCE.STARTUP;
+  snuffer.phaseT = 0.1;
+  assert.equal(telegraphFor(snuffer).color, "ice");
+  assert.equal(telegraphFor(snuffer).moveId, "snuff_spit");
+  blocker.stance = STANCE.STARTUP;
+  blocker.phaseT = 0.2;
+  assert.equal(telegraphFor(blocker).color, "ember");
+  assert.equal(telegraphFor(blocker).moveId, "shoulder_slam");
+  wight.stance = STANCE.ACTIVE;
+  assert.equal(telegraphFor(wight), null);
   assert.equal(state.player.hp, undefined);
 });
