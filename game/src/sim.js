@@ -63,6 +63,7 @@ export function telegraphFor(enemy) {
     facingX: enemy.facingX,
     facingZ: enemy.facingZ,
     progress: Math.max(0, Math.min(1, enemy.phaseT / startup)),
+    tighten: Math.max(0, Math.min(1, enemy.phaseT / startup)),
   };
 }
 

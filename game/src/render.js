@@ -142,7 +142,8 @@ export function createRenderer(canvas) {
           ring.material.opacity = 0.22 + tel.progress * 0.5;
           const theta = Math.atan2(-tel.facingZ, tel.facingX);
           const half = Math.max(0.12, tel.halfAngle);
-          const geo = new THREE.RingGeometry(0.86, 1, 48, 1, theta - half, half * 2);
+          const inner = 0.86 - tel.tighten * 0.7;
+          const geo = new THREE.RingGeometry(inner, 1, 48, 1, theta - half, half * 2);
           if (ring.geometry) ring.geometry.dispose();
           ring.geometry = geo;
         }

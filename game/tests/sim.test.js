@@ -355,3 +355,19 @@ test("telegraph wedge faces the enemy and spans the attack half-angle", () => {
   assert.ok(Math.abs(tel.halfAngle - ENEMY_DEFS.ash_snuffer.attack.halfAngle) < 1e-6);
   assert.equal(state.player.hp, undefined);
 });
+
+test("telegraph wedge tightens inward as startup nears contact", () => {
+  const state = playable("snuffer");
+  const snuffer = state.enemies.find((e) => e.defId === "ash_snuffer");
+  snuffer.stance = STANCE.STARTUP;
+  snuffer.facingX = 1;
+  snuffer.facingZ = 0;
+  snuffer.phaseT = ENEMY_DEFS.ash_snuffer.attack.startup * 0.2;
+  const early = telegraphFor(snuffer);
+  snuffer.phaseT = ENEMY_DEFS.ash_snuffer.attack.startup * 0.9;
+  const late = telegraphFor(snuffer);
+  assert.ok(early.tighten < late.tighten, "tighten must grow as the clock nears contact");
+  assert.ok(early.tighten > 0 && early.tighten < 1);
+  assert.ok(late.tighten > 0.8);
+  assert.equal(state.player.hp, undefined);
+});
