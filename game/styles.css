@@ -1,0 +1,211 @@
+:root {
+  --bg: #0c0a08;
+  --ink: #f3ead8;
+  --mute: #b4a894;
+  --ember: #e07a3d;
+  --gold: #f3c969;
+  --danger: #d4563a;
+  --panel: rgba(12, 10, 8, 0.42);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", sans-serif;
+  overflow: hidden;
+}
+
+#stage {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.hud {
+  position: fixed;
+  inset: 0 0 auto 0;
+  padding: 22px 28px 0;
+  pointer-events: none;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55);
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.mark {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 16px var(--ember);
+}
+
+.brand strong {
+  display: block;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.brand em {
+  display: block;
+  margin-top: 4px;
+  font-style: normal;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.fuel {
+  min-width: 220px;
+}
+
+.fuel span {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin-bottom: 6px;
+}
+
+.bar {
+  height: 7px;
+  background: rgba(243, 234, 216, 0.12);
+  overflow: hidden;
+}
+
+.bar i {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, var(--ember), var(--gold));
+  transform-origin: left center;
+  transition: transform 80ms linear;
+}
+
+.bar i[data-low="true"] {
+  background: var(--danger);
+}
+
+.fuel b {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.objective, .stats {
+  margin: 14px 0 0;
+  color: var(--mute);
+  font-size: 13px;
+}
+
+.banner {
+  position: fixed;
+  left: 50%;
+  top: 46%;
+  transform: translate(-50%, -50%);
+  width: min(560px, calc(100vw - 40px));
+  padding: 36px 36px 28px;
+  background: var(--panel);
+  border: 1px solid rgba(243, 201, 105, 0.16);
+  backdrop-filter: blur(10px);
+  text-align: center;
+}
+
+.banner[hidden] { display: none; }
+
+.kicker {
+  margin: 0 0 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-size: 11px;
+  color: var(--gold);
+}
+
+.banner h1 {
+  margin: 0;
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(42px, 8vw, 72px);
+  font-weight: 600;
+  line-height: 0.9;
+}
+
+.banner p {
+  margin: 14px auto 0;
+  max-width: 36ch;
+  color: var(--mute);
+  line-height: 1.5;
+}
+
+.banner small {
+  display: block;
+  margin-top: 18px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 11px;
+  color: var(--ink);
+}
+
+.help {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 16px;
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--mute);
+  font-size: 12px;
+}
+
+kbd {
+  display: inline-block;
+  padding: 1px 6px;
+  border: 1px solid rgba(243, 234, 216, 0.22);
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--ink);
+}
+
+.debug {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  max-height: 40vh;
+  overflow: auto;
+  margin: 0;
+  padding: 10px;
+  width: 280px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #c8d0b4;
+  font-size: 11px;
+}
+
+.debug:empty, .debug[hidden] { display: none; }
+
+@media (max-width: 700px) {
+  .hud { padding: 14px 14px 0; }
+  .fuel { min-width: 140px; }
+  .banner { padding: 24px 18px 18px; }
+}

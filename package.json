@@ -1,0 +1,11 @@
+{
+  "name": "cinderpath",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Keep the last lantern alive on the ash road.",
+  "scripts": {
+    "test": "node --test game/tests/sim.test.js",
+    "start": "npx --yes serve -l 4173 ."
+  }
+}

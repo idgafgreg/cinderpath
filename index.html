@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Cinderpath</title>
+    <meta name="description" content="Keep the last lantern alive on the ash road. A playable isometric vertical slice." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./game/styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <canvas id="stage"></canvas>
+
+    <div class="hud">
+      <header class="top">
+        <div class="brand">
+          <span class="mark"></span>
+          <div>
+            <strong>Cinderpath</strong>
+            <em data-phase>title</em>
+          </div>
+        </div>
+        <div class="fuel">
+          <span>Wick</span>
+          <div class="bar"><i data-fuel-fill></i></div>
+          <b data-fuel>100</b>
+        </div>
+      </header>
+
+      <p class="objective" data-objective>Keep the lantern alive</p>
+      <p class="stats" data-stats></p>
+    </div>
+
+    <section class="banner" data-banner>
+      <p class="kicker">A lantern-road vertical slice</p>
+      <h1>Cinderpath</h1>
+      <p>Carry the last lantern down the ash road. Reach the wayshrine before the wick dies.</p>
+      <small>Enter or click to walk</small>
+      <ul class="help">
+        <li><kbd>WASD</kbd> move</li>
+        <li><kbd>Space</kbd> / click swing</li>
+        <li><kbd>Esc</kbd> pause</li>
+        <li><kbd>R</kbd> restart</li>
+      </ul>
+    </section>
+
+    <pre class="debug" data-debug hidden></pre>
+
+    <script type="module" src="./game/src/main.js"></script>
+  </body>
+</html>
