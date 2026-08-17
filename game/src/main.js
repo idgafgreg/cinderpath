@@ -1,7 +1,7 @@
 import { PLAYER_DEF, ZONE_DEF } from "../content/catalog.js";
 import { createAudio, cuesFor } from "./audio.js";
 import { createInput } from "./input.js";
-import { clearSave, loadGhost, loadSave, writeCheckpoint, writeGhost } from "./persist.js";
+import { clearSave, loadGhost, loadSave, loadSoundPref, writeCheckpoint, writeGhost, writeSoundPref } from "./persist.js";
 import { createRenderer } from "./render.js";
 import { PHASE, createGame, outroFor, pendingWave, snapshot, step, weatherFor } from "./sim.js";
 
@@ -24,12 +24,14 @@ const hud = {
   wave: document.querySelector("[data-wave]"),
   waveLabel: document.querySelector("[data-wave-label]"),
   waveCount: document.querySelector("[data-wave-count]"),
+  sound: document.querySelector("[data-sound]"),
 };
 
 const input = createInput();
 const view = createRenderer(canvas);
 const audioCtx = typeof window.AudioContext !== "undefined" ? new window.AudioContext() : null;
 const audio = createAudio({ ctx: audioCtx });
+audio.setMuted(!loadSoundPref());
 window.addEventListener("pointerdown", () => audio.unlock(), { once: true });
 window.addEventListener("keydown", () => audio.unlock(), { once: true });
 let checkpoint = fixture ? null : loadSave();
@@ -113,6 +115,10 @@ function paint(events) {
   }
 
   hud.stats.textContent = `${state.stats.kills} slain · ${state.stats.hitsLanded} hits · ${state.time.toFixed(1)}s`;
+  if (hud.sound) {
+    hud.sound.textContent = audio.isMuted() ? "Sound off" : "Sound on";
+    hud.sound.dataset.muted = audio.isMuted() ? "true" : "false";
+  }
   if (debug) {
     hud.debug.hidden = false;
     hud.debug.textContent = JSON.stringify(snapshot(state), null, 2);
@@ -146,6 +152,14 @@ function frame(now) {
     }
   }
   const events = step(state, commands, dt);
+  if (commands.mute) {
+    const next = !audio.isMuted();
+    audio.setMuted(next);
+    writeSoundPref(!next);
+    paint([]);
+    requestAnimationFrame(frame);
+    return;
+  }
   if (events.some((event) => event.type === "shrine_lit") && !fixture) {
     writeCheckpoint(state);
   }

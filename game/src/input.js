@@ -7,6 +7,7 @@ export function createInput(root = document) {
     pause: false,
     restart: false,
     start: false,
+    mute: false,
   };
 
   const pressed = new Set();
@@ -58,6 +59,12 @@ export function createInput(root = document) {
         pressed.add("restart");
       }
     }
+    if (event.code === "KeyM") {
+      if (!pressed.has("mute")) {
+        state.mute = true;
+        pressed.add("mute");
+      }
+    }
     syncAxes();
   }
 
@@ -67,6 +74,7 @@ export function createInput(root = document) {
     if (event.code === "Enter") pressed.delete("start");
     if (event.code === "Escape") pressed.delete("pause");
     if (event.code === "KeyR") pressed.delete("restart");
+    if (event.code === "KeyM") pressed.delete("mute");
     syncAxes();
   }
 
@@ -147,6 +155,7 @@ export function createInput(root = document) {
       state.pause = false;
       state.restart = false;
       state.start = false;
+      state.mute = false;
       return frame;
     },
     dispose() {

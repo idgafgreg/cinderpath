@@ -2,6 +2,7 @@ import { serializeGhost, serializeSave } from "./sim.js";
 
 export const SAVE_KEY = "cinderpath-save-v1";
 export const GHOST_KEY = "cinderpath-ghost-v1";
+export const SOUND_KEY = "cinderpath-sound-v1";
 
 export function loadSave(storage = globalThis.localStorage) {
   if (!storage) return null;
@@ -47,4 +48,21 @@ export function writeGhost(state, storage = globalThis.localStorage) {
   if (!blob.samples.length) return null;
   storage.setItem(GHOST_KEY, JSON.stringify(blob));
   return blob;
+}
+
+export function loadSoundPref(storage = globalThis.localStorage) {
+  if (!storage) return true;
+  try {
+    const raw = storage.getItem(SOUND_KEY);
+    if (!raw) return true;
+    const data = JSON.parse(raw);
+    return data?.muted === true ? false : true;
+  } catch {
+    return true;
+  }
+}
+
+export function writeSoundPref(soundOn, storage = globalThis.localStorage) {
+  if (!storage) return;
+  storage.setItem(SOUND_KEY, JSON.stringify({ v: 1, muted: !Boolean(soundOn) }));
 }

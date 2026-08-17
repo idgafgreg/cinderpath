@@ -29,7 +29,7 @@ Review states:
 - `/?fixture=oil`
 - `/?debug=1&seed=7`
 
-Controls: **WASD** move · **Space / click** swing · **Esc** pause · **R** restart
+Controls: **WASD** move · **Space / click** swing · **Esc** pause · **R** restart · **M** sound on/off (remembered)
 
 ## Why this repo exists
 
@@ -65,12 +65,6 @@ render.js    honest low-poly placeholders driven by sim events
 ```
 
 Combat is a state machine. Hits come from wedge contact during an `active` window, once per action and target. Meshes do not decide damage.
-
-## Next slices
-
-Only after this road stays green:
-
-1. A sound toggle (M) with a persisted preference
 
 ## License
 

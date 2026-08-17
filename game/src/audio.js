@@ -134,12 +134,17 @@ export function createAudio({ ctx = null } = {}) {
       play() {},
       unlock() {},
       dispose() {},
+      setMuted() {},
+      isMuted() {
+        return false;
+      },
     };
   }
 
   const master = ctx.createGain();
   master.gain.value = MASTER_GAIN;
   master.connect(ctx.destination);
+  let muted = false;
 
   // One shared noise buffer for every breathy cue.
   const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.5, ctx.sampleRate);
@@ -248,10 +253,17 @@ export function createAudio({ ctx = null } = {}) {
 
   return {
     play(cues) {
+      if (muted) return;
       for (const item of cues || []) playCue(item.cue, item.variant || "");
     },
     unlock() {
       if (ctx.state === "suspended") ctx.resume();
+    },
+    setMuted(next) {
+      muted = Boolean(next);
+    },
+    isMuted() {
+      return muted;
     },
     dispose() {
       try {

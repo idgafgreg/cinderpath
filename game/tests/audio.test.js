@@ -2,6 +2,40 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { CUE, createAudio, cueProfile, cuesFor } from "../src/audio.js";
 
+function fakeContext() {
+  const nodes = [];
+  const ctx = {
+    state: "running",
+    currentTime: 0,
+    sampleRate: 8000,
+    destination: {},
+    createGain() {
+      return { gain: { value: 0, setValueAtTime() {}, exponentialRampToValueAtTime() {} }, connect() {} };
+    },
+    createBuffer(channels, length, rate) {
+      return { getChannelData: () => new Float32Array(length) };
+    },
+    createBufferSource() {
+      return { buffer: null, loop: false, connect() {}, start() {}, stop() {} };
+    },
+    createOscillator() {
+      return {
+        type: "sine",
+        frequency: { setValueAtTime() {}, exponentialRampToValueAtTime() {} },
+        connect() {},
+        start() {},
+        stop() {},
+      };
+    },
+    createBiquadFilter() {
+      return { type: "", frequency: { value: 0 }, Q: { value: 0 }, connect() {} };
+    },
+    resume() {},
+    close() {},
+  };
+  return { ctx, nodes };
+}
+
 test("cuesFor maps every sim event to a cue", () => {
   const events = [
     { type: "swing_start" },
@@ -67,5 +101,24 @@ test("createAudio without a WebAudio context stays silent", () => {
   const audio = createAudio({ ctx: null });
   assert.doesNotThrow(() => audio.play([]));
   assert.doesNotThrow(() => audio.play([{ type: "swing_start" }, { type: "hit", source: "player", moveId: "lantern_arc" }]));
+  audio.dispose();
+});
+
+test("muted audio plays no cues", () => {
+  const { ctx } = fakeContext();
+  const audio = createAudio({ ctx });
+  audio.setMuted(true);
+  assert.doesNotThrow(() => audio.play([{ cue: CUE.RING }, { cue: CUE.HIT }]));
+  audio.dispose();
+});
+
+test("mute state round-trips and defaults to unmuted", () => {
+  const { ctx } = fakeContext();
+  const audio = createAudio({ ctx });
+  assert.equal(audio.isMuted(), false);
+  audio.setMuted(true);
+  assert.equal(audio.isMuted(), true);
+  audio.setMuted(false);
+  assert.equal(audio.isMuted(), false);
   audio.dispose();
 });

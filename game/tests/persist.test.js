@@ -1,7 +1,18 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { PHASE, createGame, emptyInput, step } from "../src/sim.js";
-import { GHOST_KEY, SAVE_KEY, clearSave, loadGhost, loadSave, writeCheckpoint, writeGhost } from "../src/persist.js";
+import {
+  GHOST_KEY,
+  SAVE_KEY,
+  SOUND_KEY,
+  clearSave,
+  loadGhost,
+  loadSave,
+  loadSoundPref,
+  writeCheckpoint,
+  writeGhost,
+  writeSoundPref,
+} from "../src/persist.js";
 
 function memoryStorage(start = {}) {
   const data = { ...start };
@@ -52,4 +63,26 @@ test("a winning ghost survives clearing the checkpoint", () => {
   assert.ok(ghost);
   assert.ok(storage.getItem(GHOST_KEY));
   assert.ok(ghost.samples.length >= 1);
+});
+
+test("sound preference round-trips and defaults to on", () => {
+  const storage = memoryStorage();
+  assert.equal(loadSoundPref(storage), true, "no stored preference means sound on");
+  writeSoundPref(false, storage);
+  assert.equal(loadSoundPref(storage), false);
+  writeSoundPref(true, storage);
+  assert.equal(loadSoundPref(storage), true);
+  assert.ok(storage.getItem(SOUND_KEY), "preference is persisted under its own key");
+});
+
+test("sound preference ignores a corrupt blob", () => {
+  const storage = memoryStorage({ [SOUND_KEY]: "{not json" });
+  assert.equal(loadSoundPref(storage), true);
+});
+
+test("sound preference survives a checkpoint clear", () => {
+  const storage = memoryStorage();
+  writeSoundPref(false, storage);
+  clearSave(storage);
+  assert.equal(loadSoundPref(storage), false);
 });
