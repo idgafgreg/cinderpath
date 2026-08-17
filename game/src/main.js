@@ -2,7 +2,7 @@ import { PLAYER_DEF, ZONE_DEF } from "../content/catalog.js";
 import { createInput } from "./input.js";
 import { clearSave, loadGhost, loadSave, writeCheckpoint, writeGhost } from "./persist.js";
 import { createRenderer } from "./render.js";
-import { PHASE, createGame, snapshot, step, weatherFor } from "./sim.js";
+import { PHASE, createGame, pendingWave, snapshot, step, weatherFor } from "./sim.js";
 
 const params = new URLSearchParams(window.location.search);
 const seed = Number(params.get("seed") || 1);
@@ -20,6 +20,9 @@ const hud = {
   debug: document.querySelector("[data-debug]"),
   oil: document.querySelector("[data-oil]"),
   weather: document.querySelector("[data-weather]"),
+  wave: document.querySelector("[data-wave]"),
+  waveLabel: document.querySelector("[data-wave-label]"),
+  waveCount: document.querySelector("[data-wave-count]"),
 };
 
 const input = createInput();
@@ -86,6 +89,15 @@ function paint(events) {
     hud.banner.querySelector("h1").textContent = banner.title;
     hud.banner.querySelector("p").textContent = banner.body;
     hud.banner.querySelector("small").textContent = banner.prompt;
+  }
+
+  const wave = pendingWave(state);
+  if (hud.wave) {
+    hud.wave.hidden = !wave;
+    if (wave) {
+      hud.waveLabel.textContent = wave.label;
+      hud.waveCount.textContent = wave.remaining.toFixed(1);
+    }
   }
 
   hud.stats.textContent = `${state.stats.kills} slain · ${state.stats.hitsLanded} hits · ${state.time.toFixed(1)}s`;

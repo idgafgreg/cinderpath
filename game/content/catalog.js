@@ -206,17 +206,23 @@ export const ZONE_DEF = Object.freeze({
   waves: Object.freeze([
     Object.freeze({
       id: "wave_blocker",
+      label: "Ash blocker",
       triggerX: 36,
+      bannerDelay: 1.2,
       spawns: Object.freeze([Object.freeze({ defId: "ash_blocker", x: 40.1, z: 0 })]),
     }),
     Object.freeze({
       id: "wave_snuffer",
+      label: "Ash snuffer",
       triggerX: 44,
+      bannerDelay: 1.2,
       spawns: Object.freeze([Object.freeze({ defId: "ash_snuffer", x: 48.2, z: 0.5 })]),
     }),
     Object.freeze({
       id: "wave_both",
+      label: "Blocker and snuffer",
       triggerX: 52,
+      bannerDelay: 1.4,
       spawns: Object.freeze([
         Object.freeze({ defId: "ash_blocker", x: 40.1, z: 0 }),
         Object.freeze({ defId: "ash_snuffer", x: 48.2, z: 0.5 }),

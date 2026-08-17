@@ -272,11 +272,37 @@ function fireWave(state, waveId) {
   state.events.push({ type: "wave", waveId, t: state.time });
 }
 
-function stepWaves(state) {
+function stepWaves(state, dt) {
+  if (state.pendingWave) {
+    state.pendingWave.remaining -= dt;
+    if (state.pendingWave.remaining <= 0) {
+      const waveId = state.pendingWave.waveId;
+      state.pendingWave = null;
+      fireWave(state, waveId);
+    }
+    return;
+  }
   for (const wave of ZONE_DEF.waves || []) {
     if (state.firedWaves.includes(wave.id)) continue;
-    if (state.player.x >= wave.triggerX) fireWave(state, wave.id);
+    if (state.player.x >= wave.triggerX) {
+      state.pendingWave = {
+        waveId: wave.id,
+        label: wave.label,
+        remaining: wave.bannerDelay || 0,
+      };
+      state.events.push({ type: "wave_announce", waveId: wave.id, label: wave.label, t: state.time });
+      return;
+    }
   }
+}
+
+export function pendingWave(state) {
+  if (!state.pendingWave) return null;
+  return {
+    waveId: state.pendingWave.waveId,
+    label: state.pendingWave.label,
+    remaining: Math.max(0, state.pendingWave.remaining),
+  };
 }
 
 export function createGame({ seed = 1, fixture = null, save = null, ghost = null } = {}) {
@@ -295,6 +321,7 @@ export function createGame({ seed = 1, fixture = null, save = null, ghost = null
     events: [],
     litShrines: [],
     firedWaves: [],
+    pendingWave: null,
     enemySeq: 0,
     upgrades: { brightOil: false },
     trail: [],
@@ -798,7 +825,7 @@ export function step(state, input, dt) {
   state.player.fuel = Math.max(0, state.player.fuel - drainFor(state) * clamped);
 
   stepPlayer(state, input, clamped);
-  stepWaves(state);
+  stepWaves(state, clamped);
   for (const enemy of state.enemies) stepEnemy(state, enemy, clamped);
   collectPickups(state);
   recordTrail(state, clamped);

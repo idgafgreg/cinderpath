@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { ENEMY_DEFS, PLAYER_DEF, validateCatalog } from "../content/catalog.js";
-import { PHASE, STANCE, createGame, emptyInput, lanternFlare, lanternLight, moteField, serializeGhost, serializeSave, step, swingFor, telegraphFor, weatherFor } from "../src/sim.js";
+import { PHASE, STANCE, createGame, emptyInput, lanternFlare, lanternLight, moteField, pendingWave, serializeGhost, serializeSave, step, swingFor, telegraphFor, weatherFor } from "../src/sim.js";
 
 function flush(state, input, seconds, hz = 60) {
   const dt = 1 / hz;
@@ -409,15 +409,18 @@ test("second-road enemies arrive in scripted waves", () => {
 
   state.player.x = 37;
   const ev1 = step(state, emptyInput(), 1 / 60);
-  assert.ok(state.enemies.some((e) => e.defId === "ash_blocker"), "blocker wave fires past its trigger");
-  assert.ok(ev1.some((e) => e.type === "wave" && e.waveId === "wave_blocker"));
+  assert.ok(ev1.some((e) => e.type === "wave_announce" && e.waveId === "wave_blocker"), "blocker wave announces at trigger");
+  flush(state, emptyInput(), 1.4);
+  assert.ok(state.enemies.some((e) => e.defId === "ash_blocker"), "blocker wave fires after its banner");
 
   state.player.x = 45;
   step(state, emptyInput(), 1 / 60);
+  flush(state, emptyInput(), 1.4);
   assert.ok(state.enemies.some((e) => e.defId === "ash_snuffer"), "snuffer wave fires past its trigger");
 
   state.player.x = 53;
   step(state, emptyInput(), 1 / 60);
+  flush(state, emptyInput(), 1.6);
   assert.ok(state.enemies.filter((e) => e.defId === "ash_blocker").length >= 2, "both wave adds a second blocker");
   assert.ok(state.enemies.filter((e) => e.defId === "ash_snuffer").length >= 2, "both wave adds a second snuffer");
 
@@ -425,5 +428,21 @@ test("second-road enemies arrive in scripted waves", () => {
   state.player.x = 60;
   step(state, emptyInput(), 1 / 60);
   assert.equal(state.enemies.length, count, "waves must not re-fire");
+  assert.equal(state.player.hp, undefined);
+});
+
+test("wave banner announces the threat before it spawns", () => {
+  const state = playable("combat");
+  state.player.x = 37;
+  const ev1 = step(state, emptyInput(), 1 / 60);
+  assert.ok(ev1.some((e) => e.type === "wave_announce" && e.waveId === "wave_blocker"), "announce fires at trigger");
+  assert.ok(!state.enemies.some((e) => e.defId === "ash_blocker"), "blocker not spawned yet during banner");
+  const pending = pendingWave(state);
+  assert.ok(pending, "a wave is pending during the banner");
+  assert.equal(pending.label, "Ash blocker");
+  assert.ok(pending.remaining > 0);
+  flush(state, emptyInput(), pending.remaining + 0.1);
+  assert.ok(state.enemies.some((e) => e.defId === "ash_blocker"), "blocker spawns after the banner countdown");
+  assert.equal(pendingWave(state), null, "no pending wave after it fires");
   assert.equal(state.player.hp, undefined);
 });
