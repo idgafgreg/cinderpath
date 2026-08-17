@@ -386,3 +386,17 @@ test("telegraph wedge flashes in the final startup beat", () => {
   assert.ok(late.flash > 0.5, "final beat must pop brighter");
   assert.equal(state.player.hp, undefined);
 });
+
+test("telegraph wedge cuts out the instant the active window opens", () => {
+  const state = playable("snuffer");
+  const snuffer = state.enemies.find((e) => e.defId === "ash_snuffer");
+  snuffer.stance = STANCE.STARTUP;
+  snuffer.facingX = 1;
+  snuffer.facingZ = 0;
+  snuffer.phaseT = ENEMY_DEFS.ash_snuffer.attack.startup - 0.001;
+  assert.ok(telegraphFor(snuffer), "still telegraphing just before contact");
+  snuffer.stance = STANCE.ACTIVE;
+  snuffer.phaseT = 0;
+  assert.equal(telegraphFor(snuffer), null, "no lingering glow once the active window opens");
+  assert.equal(state.player.hp, undefined);
+});
