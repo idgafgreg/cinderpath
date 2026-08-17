@@ -71,8 +71,8 @@ Only after this road stays green:
 
 1. Authored encounter waves on the second road
 2. A short directed ending after the hearth
-3. A quieter mix: distinct slam / spit / oil / grit cues
-4. A brief lantern flare on swing that lights motes without adding a meter
+3. A quieter mix: distinct slam / spit / oil / grit / flare cues
+4. A readable telegraph ring on the ground during enemy startup
 
 ## License
 

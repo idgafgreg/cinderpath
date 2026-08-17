@@ -43,6 +43,7 @@ Lighting a shrine writes `cinderpath-save-v1`. Death keeps that save. R wipes th
 - Bright oil shows as the word OIL beside the wick, never as a second bar
 - A successful walk leaves a translucent ghost on the next run
 - Past the gate, ashnight thickens fog and fills the lantern cone with drifting ash motes
+- A swing flare lights those motes only during the active window
 - Gate bar vanishes when the wayshrine is lit
 - Touch: left stick, right swing, safe-area padding
 

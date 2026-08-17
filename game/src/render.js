@@ -386,11 +386,14 @@ function createMoteCloud() {
     sync(state, origin, light, time) {
       const field = moteField(state);
       const visible = Math.min(max, field.count);
-      points.visible = visible > 0;
-      material.opacity += ((visible > 0 ? 0.55 : 0) - material.opacity) * 0.08;
-      material.size = light.intensity > 2.8 ? 0.07 : 0.05;
+      const flash = field.flash || 0;
+      points.visible = visible > 0 || flash > 0.2;
+      const targetOpacity = visible > 0 ? 0.5 + flash * 0.4 : 0;
+      material.opacity += (targetOpacity - material.opacity) * (flash > 0.4 ? 0.45 : 0.1);
+      material.size = 0.048 + flash * 0.06;
+      const radius = field.radius * (1 + flash * 0.12);
       for (let i = 0; i < max; i += 1) {
-        if (i < visible) place(i, origin, field.radius, time);
+        if (i < visible) place(i, origin, radius, time);
         else {
           positions[i * 3] = origin.x;
           positions[i * 3 + 1] = -20;

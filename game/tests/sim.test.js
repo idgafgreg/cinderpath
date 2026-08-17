@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { ENEMY_DEFS, PLAYER_DEF, validateCatalog } from "../content/catalog.js";
-import { PHASE, STANCE, createGame, emptyInput, lanternLight, moteField, serializeGhost, serializeSave, step, swingFor, weatherFor } from "../src/sim.js";
+import { PHASE, STANCE, createGame, emptyInput, lanternFlare, lanternLight, moteField, serializeGhost, serializeSave, step, swingFor, weatherFor } from "../src/sim.js";
 
 function flush(state, input, seconds, hz = 60) {
   const dt = 1 / hz;
@@ -295,4 +295,22 @@ test("ash motes thicken only in ashnight and are not a meter", () => {
   assert.ok(oiled.radius > night.radius);
   assert.equal(playable("blocker").player.hp, undefined);
   assert.equal(playable("blocker").player.motes, undefined);
+});
+
+test("swing flare lights the cone only during the active window", () => {
+  const state = playable("blocker");
+  const idle = lanternLight(state);
+  assert.equal(lanternFlare(state), 0);
+  step(state, { ...emptyInput(), attack: true }, 1 / 60);
+  assert.ok(lanternFlare(state) < 1, "startup is a warm-up, not the flare");
+  flush(state, emptyInput(), PLAYER_DEF.swing.startup);
+  assert.equal(state.player.stance, STANCE.ACTIVE);
+  assert.equal(lanternFlare(state), 1);
+  const flared = lanternLight(state);
+  assert.ok(flared.intensity > idle.intensity);
+  assert.ok(flared.range > idle.range);
+  assert.ok(moteField(state).flash > 0);
+  flush(state, emptyInput(), PLAYER_DEF.swing.active + PLAYER_DEF.swing.recovery);
+  assert.equal(lanternFlare(state), 0);
+  assert.equal(state.player.hp, undefined);
 });

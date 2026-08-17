@@ -47,16 +47,35 @@ export function weatherFor(state) {
   return pastGate ? WEATHER_DEFS.ashnight : WEATHER_DEFS.dusk;
 }
 
+export function lanternFlare(state) {
+  const stance = state.player?.stance;
+  if (stance === STANCE.ACTIVE) return 1;
+  if (stance === STANCE.STARTUP) return 0.28;
+  if (stance === STANCE.RECOVERY) return 0.08;
+  return 0;
+}
+
 export function lanternLight(state) {
   const weather = weatherFor(state);
   const fuel = Math.max(0, Math.min(1, state.player.fuel / PLAYER_DEF.maxFuel));
+  const flare = lanternFlare(state);
   let range = weather.lanternRange * (0.55 + 0.45 * fuel);
   let intensity = weather.lanternIntensity * (0.38 + 0.62 * fuel);
   if (state.upgrades?.brightOil) {
     range += UPGRADE_DEFS.brightOil.lanternRangeBonus;
     intensity += UPGRADE_DEFS.brightOil.lanternIntensityBonus;
   }
-  return { range, intensity, weather: weather.id, fog: weather.fog, moon: weather.moon, ambient: weather.ambient };
+  range *= 1 + flare * 0.22;
+  intensity *= 1 + flare * 0.85;
+  return {
+    range,
+    intensity,
+    flare,
+    weather: weather.id,
+    fog: weather.fog,
+    moon: weather.moon,
+    ambient: weather.ambient,
+  };
 }
 
 export function moteField(state) {
@@ -66,6 +85,7 @@ export function moteField(state) {
     count: weather.motes || 0,
     radius: light.range * 0.92,
     weather: weather.id,
+    flash: light.flare,
   };
 }
 
