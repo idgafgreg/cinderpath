@@ -140,6 +140,7 @@ export const WEATHER_DEFS = Object.freeze({
     ambient: 0.5,
     lanternRange: 9.6,
     lanternIntensity: 2.25,
+    motes: 0,
   }),
   ashnight: Object.freeze({
     id: "ashnight",
@@ -148,6 +149,7 @@ export const WEATHER_DEFS = Object.freeze({
     ambient: 0.13,
     lanternRange: 6.1,
     lanternIntensity: 2.55,
+    motes: 128,
   }),
 });
 

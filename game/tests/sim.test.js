@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { ENEMY_DEFS, PLAYER_DEF, validateCatalog } from "../content/catalog.js";
-import { PHASE, STANCE, createGame, emptyInput, lanternLight, serializeGhost, serializeSave, step, swingFor, weatherFor } from "../src/sim.js";
+import { PHASE, STANCE, createGame, emptyInput, lanternLight, moteField, serializeGhost, serializeSave, step, swingFor, weatherFor } from "../src/sim.js";
 
 function flush(state, input, seconds, hz = 60) {
   const dt = 1 / hz;
@@ -281,4 +281,18 @@ test("oil widens the lantern in ashnight without adding a meter", () => {
   assert.ok(b.intensity > a.intensity);
   assert.equal(PLAYER_DEF.maxFuel, 100);
   assert.equal(oiled.player.hp, undefined);
+});
+
+test("ash motes thicken only in ashnight and are not a meter", () => {
+  const dusk = moteField(playable("combat"));
+  const night = moteField(playable("blocker"));
+  const oiledState = playable("oil");
+  oiledState.upgrades.brightOil = true;
+  oiledState.player.x = playable("blocker").player.x;
+  const oiled = moteField(oiledState);
+  assert.equal(dusk.count, 0);
+  assert.ok(night.count > 40);
+  assert.ok(oiled.radius > night.radius);
+  assert.equal(playable("blocker").player.hp, undefined);
+  assert.equal(playable("blocker").player.motes, undefined);
 });

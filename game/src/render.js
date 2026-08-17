@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { ZONE_DEF } from "../content/catalog.js";
-import { PHASE, STANCE, lanternLight, weatherFor } from "./sim.js";
+import { PHASE, STANCE, lanternLight, moteField, weatherFor } from "./sim.js";
 
 const COLORS = {
   ground: 0x1b1712,
@@ -40,6 +40,9 @@ export function createRenderer(canvas) {
   const lantern = new THREE.PointLight(0xf3c969, 2.3, 9.5, 1.6);
   lantern.position.set(0, 1.4, 0);
   scene.add(lantern);
+
+  const motes = createMoteCloud();
+  scene.add(motes.points);
 
   const shrineLights = new Map();
   for (const shrine of ZONE_DEF.shrines) {
@@ -92,6 +95,7 @@ export function createRenderer(canvas) {
       scene.fog.density += (sky.fog - scene.fog.density) * 0.08;
       moon.intensity += (sky.moon - moon.intensity) * 0.08;
       ambient.intensity += (sky.ambient - ambient.intensity) * 0.08;
+      motes.sync(state, lantern.position, light, state.time);
 
       const body = playerMesh.getObjectByName("body");
       if (body) {
@@ -339,4 +343,61 @@ function buildBlocker() {
   brow.position.set(0, 1.22, 0.55);
   g.add(body, brow);
   return g;
+}
+
+function createMoteCloud() {
+  const max = 160;
+  const positions = new Float32Array(max * 3);
+  const seeds = [];
+  for (let i = 0; i < max; i += 1) {
+    seeds.push({
+      ox: Math.random() * 2 - 1,
+      oy: Math.random(),
+      oz: Math.random() * 2 - 1,
+      spin: 0.4 + Math.random() * 1.4,
+      rise: 0.12 + Math.random() * 0.35,
+    });
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  const material = new THREE.PointsMaterial({
+    color: 0xc4b49a,
+    size: 0.055,
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+    sizeAttenuation: true,
+  });
+  const points = new THREE.Points(geometry, material);
+  points.frustumCulled = false;
+
+  function place(i, origin, radius, time) {
+    const s = seeds[i];
+    const ang = time * s.spin + i;
+    const r = radius * (0.18 + 0.82 * ((s.ox * 0.5 + 0.5) % 1));
+    const y = 0.25 + ((s.oy + time * s.rise) % 1) * Math.min(2.4, radius * 0.45);
+    positions[i * 3] = origin.x + Math.cos(ang) * r * s.ox;
+    positions[i * 3 + 1] = origin.y - 0.4 + y;
+    positions[i * 3 + 2] = origin.z + Math.sin(ang) * r * s.oz;
+  }
+
+  return {
+    points,
+    sync(state, origin, light, time) {
+      const field = moteField(state);
+      const visible = Math.min(max, field.count);
+      points.visible = visible > 0;
+      material.opacity += ((visible > 0 ? 0.55 : 0) - material.opacity) * 0.08;
+      material.size = light.intensity > 2.8 ? 0.07 : 0.05;
+      for (let i = 0; i < max; i += 1) {
+        if (i < visible) place(i, origin, field.radius, time);
+        else {
+          positions[i * 3] = origin.x;
+          positions[i * 3 + 1] = -20;
+          positions[i * 3 + 2] = origin.z;
+        }
+      }
+      geometry.attributes.position.needsUpdate = true;
+    },
+  };
 }

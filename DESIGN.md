@@ -42,6 +42,7 @@ Lighting a shrine writes `cinderpath-save-v1`. Death keeps that save. R wipes th
 - Wight cloak goes ember during startup; snuffer mouth goes ice-blue at rest and ember on telegraph; blocker is a wide squat body
 - Bright oil shows as the word OIL beside the wick, never as a second bar
 - A successful walk leaves a translucent ghost on the next run
+- Past the gate, ashnight thickens fog and fills the lantern cone with drifting ash motes
 - Gate bar vanishes when the wayshrine is lit
 - Touch: left stick, right swing, safe-area padding
 

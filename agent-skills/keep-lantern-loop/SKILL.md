@@ -32,7 +32,7 @@ Cap at `PLAYER_DEF.maxFuel`. Pickups and kills are atomic: one grant, then the s
 
 ## Presentation
 
-The point light intensity and range come from fuel, weather, and bright oil. After the gate, ashnight thickens fog and dims the moon. Oil is a readability upgrade, never a second bar. The HUD bar turns danger-red under 28%. The lose banner may only appear after `phase === lose`.
+The point light intensity and range come from fuel, weather, and bright oil. After the gate, ashnight thickens fog, dims the moon, and fills the lantern cone with ash motes. Oil is a readability upgrade, never a second bar. The HUD bar turns danger-red under 28%. The lose banner may only appear after `phase === lose`.
 
 ## Done when
 

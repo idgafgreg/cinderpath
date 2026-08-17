@@ -59,6 +59,16 @@ export function lanternLight(state) {
   return { range, intensity, weather: weather.id, fog: weather.fog, moon: weather.moon, ambient: weather.ambient };
 }
 
+export function moteField(state) {
+  const weather = weatherFor(state);
+  const light = lanternLight(state);
+  return {
+    count: weather.motes || 0,
+    radius: light.range * 0.92,
+    weather: weather.id,
+  };
+}
+
 export function mulberry32(seed) {
   let a = seed >>> 0;
   return function rand() {

@@ -71,8 +71,8 @@ Only after this road stays green:
 
 1. Authored encounter waves on the second road
 2. A short directed ending after the hearth
-3. A quieter mix: distinct slam / spit / oil cues
-4. Ash motes that thicken only in ashnight, still not a meter
+3. A quieter mix: distinct slam / spit / oil / grit cues
+4. A brief lantern flare on swing that lights motes without adding a meter
 
 ## License
 
