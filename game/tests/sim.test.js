@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { ENEMY_DEFS, PLAYER_DEF, validateCatalog } from "../content/catalog.js";
-import { PHASE, STANCE, createGame, emptyInput, lanternFlare, lanternLight, moteField, pendingWave, serializeGhost, serializeSave, step, swingFor, telegraphFor, weatherFor } from "../src/sim.js";
+import { ENEMY_DEFS, PLAYER_DEF, ZONE_DEF, validateCatalog } from "../content/catalog.js";
+import { PHASE, STANCE, createGame, emptyInput, lanternFlare, lanternLight, moteField, outroFor, pendingWave, serializeGhost, serializeSave, step, swingFor, telegraphFor, weatherFor } from "../src/sim.js";
 
 function flush(state, input, seconds, hz = 60) {
   const dt = 1 / hz;
@@ -429,6 +429,96 @@ test("second-road enemies arrive in scripted waves", () => {
   step(state, emptyInput(), 1 / 60);
   assert.equal(state.enemies.length, count, "waves must not re-fire");
   assert.equal(state.player.hp, undefined);
+});
+
+test("blocker can reach the player at separation distance", () => {
+  const state = playable("blocker");
+  const blocker = state.enemies.find((e) => e.defId === "ash_blocker");
+  blocker.x = 40;
+  blocker.z = 0;
+  blocker.aggro = true;
+  state.player.x = 38.4;
+  state.player.z = 0;
+  flush(state, { ...emptyInput(), x: 1 }, 2.0);
+  assert.ok(
+    state.events.some((e) => e.type === "enemy_telegraph" && e.moveId === "shoulder_slam"),
+    "blocker must be able to start a slam when the player is pressed against it",
+  );
+  assert.equal(state.player.hp, undefined);
+});
+
+test("the both wave spawns its enemies ahead of the trigger", () => {
+  const state = playable("hearth");
+  const blockers = state.enemies.filter((e) => e.defId === "ash_blocker");
+  const snuffers = state.enemies.filter((e) => e.defId === "ash_snuffer");
+  assert.equal(blockers.length, 2, "both wave adds a second blocker");
+  assert.equal(snuffers.length, 2, "both wave adds a second snuffer");
+  const bothBlocker = blockers.find((b) => b.x > 52);
+  const bothSnuffer = snuffers.find((s) => s.x > 52);
+  assert.ok(bothBlocker, "wave_both blocker must spawn past its trigger");
+  assert.ok(bothSnuffer, "wave_both snuffer must spawn past its trigger");
+  assert.ok(bothBlocker.x > 52.5 && bothSnuffer.x > 52.5, "both spawns must sit ahead of a player crossing the trigger");
+  assert.equal(state.player.hp, undefined);
+});
+
+test("catalog validation catches bad waves", () => {
+  const badZone = {
+    ...ZONE_DEF,
+    waves: [
+      { id: "w_dup", triggerX: 999, bannerDelay: -1, spawns: [{ defId: "no_such_enemy", x: 1 }] },
+      { id: "w_dup", triggerX: 10, spawns: [] },
+    ],
+  };
+  const errors = validateCatalog({ ZONE_DEF: badZone });
+  assert.ok(errors.some((e) => e.includes("duplicate id w_dup")), "duplicate wave ids must be caught");
+  assert.ok(errors.some((e) => e.includes("triggerX outside bounds")), "out-of-bounds triggerX must be caught");
+  assert.ok(errors.some((e) => e.includes("bannerDelay")), "negative bannerDelay must be caught");
+  assert.ok(errors.some((e) => e.includes("unknown def no_such_enemy")), "unknown spawn def must be caught");
+  assert.ok(errors.some((e) => e.includes("no spawns")), "empty spawn list must be caught");
+});
+
+test("a pending wave banner clears when the run ends", () => {
+  const state = playable("combat");
+  state.player.x = 37;
+  step(state, emptyInput(), 1 / 60);
+  assert.ok(pendingWave(state), "wave is pending after the announce");
+  state.player.x = 62;
+  state.player.z = 0;
+  const events = step(state, emptyInput(), 1 / 60);
+  assert.equal(state.phase, PHASE.WIN);
+  assert.equal(pendingWave(state), null, "no banner over the win screen");
+  assert.ok(events.some((e) => e.type === "win" && typeof e.fuel === "number"), "win event carries the remaining wick");
+});
+
+test("a pending wave banner clears when the run is lost", () => {
+  const state = playable("combat");
+  state.player.x = 37;
+  step(state, emptyInput(), 1 / 60);
+  assert.ok(pendingWave(state));
+  state.player.fuel = 0.01;
+  flush(state, emptyInput(), 0.2);
+  assert.equal(state.phase, PHASE.LOSE);
+  assert.equal(pendingWave(state), null, "no banner over the lose screen");
+});
+
+test("the win outro plays before the banner and carries the wick", () => {
+  const state = playable("hearth");
+  state.player.x = 62;
+  state.player.z = 0;
+  const events = step(state, emptyInput(), 1 / 60);
+  assert.equal(state.phase, PHASE.WIN);
+  assert.ok(events.some((e) => e.type === "win" && typeof e.fuel === "number"), "win event carries the remaining wick");
+  const early = outroFor(state);
+  assert.ok(early, "outro starts the moment the hearth is lit");
+  assert.ok(early.kindleT > 0 && early.bannerAt > early.kindleT, "kindle plays before the banner is ready");
+  assert.ok(!early.bannerReady, "banner not ready at the start of the outro");
+  flush(state, emptyInput(), early.kindleT + 0.05);
+  const mid = outroFor(state);
+  assert.ok(mid.kindleDone, "flame has reached the hearth");
+  assert.ok(!mid.bannerReady, "banner still waits through the blaze");
+  flush(state, emptyInput(), 1.0);
+  assert.ok(outroFor(state).bannerReady, "banner ready after the blaze");
+  assert.equal(outroFor(playable("combat")), null, "no outro outside a win");
 });
 
 test("wave banner announces the threat before it spawns", () => {

@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { ZONE_DEF } from "../content/catalog.js";
-import { PHASE, STANCE, lanternLight, moteField, telegraphFor, weatherFor } from "./sim.js";
+import { PHASE, STANCE, lanternLight, moteField, outroFor, telegraphFor, weatherFor } from "./sim.js";
 
 const COLORS = {
   ground: 0x1b1712,
@@ -63,6 +63,7 @@ export function createRenderer(canvas) {
   ghostMesh.visible = false;
   const enemyMeshes = new Map();
   const telegraphRings = new Map();
+  const ringGeos = new Map();
   const pickupMeshes = new Map();
   root.add(playerMesh, ghostMesh);
 
@@ -73,6 +74,22 @@ export function createRenderer(canvas) {
   flash.rotation.x = -Math.PI / 2;
   flash.position.y = 0.05;
   root.add(flash);
+
+  const kindle = new THREE.Mesh(
+    new THREE.SphereGeometry(0.16, 10, 10),
+    new THREE.MeshStandardMaterial({
+      color: COLORS.lantern,
+      emissive: COLORS.lantern,
+      emissiveIntensity: 2.2,
+      transparent: true,
+      opacity: 0,
+    }),
+  );
+  kindle.visible = false;
+  root.add(kindle);
+
+  const hearth = ZONE_DEF.shrines.find((s) => s.role === "win");
+  const hearthLight = shrineLights.get(hearth.id);
 
   function resize() {
     const w = canvas.clientWidth || window.innerWidth;
@@ -143,9 +160,16 @@ export function createRenderer(canvas) {
           const theta = Math.atan2(-tel.facingZ, tel.facingX);
           const half = Math.max(0.12, tel.halfAngle);
           const inner = 0.86 - tel.tighten * 0.7;
-          const geo = new THREE.RingGeometry(inner, 1, 48, 1, theta - half, half * 2);
-          if (ring.geometry) ring.geometry.dispose();
-          ring.geometry = geo;
+          const key = `${half.toFixed(3)}|${inner.toFixed(3)}|${theta.toFixed(3)}`;
+          let geo = ringGeos.get(key);
+          if (!geo) {
+            geo = new THREE.RingGeometry(inner, 1, 48, 1, theta - half, half * 2);
+            ringGeos.set(key, geo);
+          }
+          if (ring.geometry !== geo) {
+            if (ring.geometry) ring.geometry.dispose();
+            ring.geometry = geo;
+          }
         }
       }
 
@@ -176,6 +200,32 @@ export function createRenderer(canvas) {
         light.intensity = state.litShrines.includes(id) ? 2.2 : 1.15;
       }
 
+      const outro = outroFor(state);
+      if (outro) {
+        const t = Math.max(0, state.time - state.winAt);
+        const kindleT = outro.kindleT;
+        if (t < kindleT) {
+          const u = t / kindleT;
+          const ease = 1 - Math.pow(1 - u, 2.2);
+          kindle.visible = true;
+          kindle.material.opacity = 0.35 + ease * 0.65;
+          kindle.position.set(
+            p.x + (hearth.x - p.x) * ease,
+            1.5 + Math.sin(ease * Math.PI) * 0.9,
+            p.z + (hearth.z - p.z) * ease,
+          );
+        } else {
+          kindle.visible = false;
+          const blaze = Math.min(1, (t - kindleT) / (outro.bannerAt - kindleT));
+          hearthLight.intensity = 2.2 + blaze * 5.5;
+          hearthLight.distance = 7.2 + blaze * 9;
+        }
+      } else {
+        kindle.visible = false;
+        hearthLight.intensity = state.litShrines.includes(hearth.id) ? 2.2 : 1.15;
+        hearthLight.distance = 7.2;
+      }
+
       if (events.some((e) => e.type === "hit" || e.type === "swing_active")) {
         flash.position.set(p.x + p.facingX * 0.9, 0.05, p.z + p.facingZ * 0.9);
         flash.material.opacity = 0.45;
@@ -184,6 +234,13 @@ export function createRenderer(canvas) {
       }
 
       const look = new THREE.Vector3(p.x, 0.6, p.z);
+      if (outro) {
+        const t = Math.max(0, state.time - state.winAt);
+        const pull = Math.min(1, t / outro.bannerAt);
+        const back = new THREE.Vector3(hearth.x, 0.6, hearth.z);
+        look.lerp(back, Math.min(1, pull * 1.4));
+        camOffset.set(-11 - pull * 5, 13.5 + pull * 2.5, 11 + pull * 4);
+      }
       camera.position.lerp(look.clone().add(camOffset), state.phase === PHASE.TITLE ? 0.04 : 0.12);
       camera.lookAt(look);
     },

@@ -2,7 +2,7 @@ import { PLAYER_DEF, ZONE_DEF } from "../content/catalog.js";
 import { createInput } from "./input.js";
 import { clearSave, loadGhost, loadSave, writeCheckpoint, writeGhost } from "./persist.js";
 import { createRenderer } from "./render.js";
-import { PHASE, createGame, pendingWave, snapshot, step, weatherFor } from "./sim.js";
+import { PHASE, createGame, outroFor, pendingWave, snapshot, step, weatherFor } from "./sim.js";
 
 const params = new URLSearchParams(window.location.search);
 const seed = Number(params.get("seed") || 1);
@@ -27,7 +27,7 @@ const hud = {
 
 const input = createInput();
 const view = createRenderer(canvas);
-const checkpoint = fixture ? null : loadSave();
+let checkpoint = fixture ? null : loadSave();
 const lastGhost = fixture ? null : loadGhost();
 let state = createGame({ seed, fixture: fixture || null, save: checkpoint, ghost: lastGhost });
 if (fixture) state.phase = PHASE.PLAY;
@@ -60,7 +60,13 @@ function bannerFor(phase) {
     return { title: "Held", body: "The road waits.", prompt: "Esc to continue · R to begin again" };
   }
   if (phase === PHASE.WIN) {
-    return { title: "The hearth takes the fire", body: "The wickwarden delivered the light.", prompt: "R to walk it again" };
+    const outro = outroFor(state);
+    if (outro && !outro.bannerReady) return null;
+    return {
+      title: "The hearth takes the fire",
+      body: `The wickwarden delivered the light with ${Math.ceil(state.player.fuel)} wick to spare.`,
+      prompt: "R to walk it again",
+    };
   }
   if (phase === PHASE.LOSE) {
     return {
@@ -93,8 +99,9 @@ function paint(events) {
 
   const wave = pendingWave(state);
   if (hud.wave) {
-    hud.wave.hidden = !wave;
-    if (wave) {
+    const showWave = wave && state.phase === PHASE.PLAY;
+    hud.wave.hidden = !showWave;
+    if (showWave) {
       hud.waveLabel.textContent = wave.label;
       hud.waveCount.textContent = wave.remaining.toFixed(1);
     }
@@ -116,6 +123,7 @@ function frame(now) {
   const commands = input.sample();
   if (commands.restart && !fixture) {
     clearSave();
+    checkpoint = null;
     state = createGame({ seed, ghost: loadGhost() });
     paint([]);
     requestAnimationFrame(frame);

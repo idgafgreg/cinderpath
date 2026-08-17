@@ -92,14 +92,14 @@ export const ENEMY_DEFS = Object.freeze({
     maxHp: 140,
     aggroRange: 5.2,
     disengageRange: 8,
-    attackRange: 1.15,
+    attackRange: 1.5,
     repathInterval: 0.25,
     attack: Object.freeze({
       id: "shoulder_slam",
       startup: 0.48,
       active: 0.18,
       recovery: 0.95,
-      range: 1.2,
+      range: 1.55,
       halfAngle: 0.8,
       damage: 16,
       knockback: 1.4,
@@ -133,6 +133,12 @@ export const UPGRADE_DEFS = Object.freeze({
     lanternRangeBonus: 4.2,
     lanternIntensityBonus: 1.15,
   }),
+});
+
+export const OUTRO_DEF = Object.freeze({
+  kindle: 1.6,
+  blaze: 1.0,
+  bannerAt: 2.6,
 });
 
 export const WEATHER_DEFS = Object.freeze({
@@ -224,8 +230,8 @@ export const ZONE_DEF = Object.freeze({
       triggerX: 52,
       bannerDelay: 1.4,
       spawns: Object.freeze([
-        Object.freeze({ defId: "ash_blocker", x: 40.1, z: 0 }),
-        Object.freeze({ defId: "ash_snuffer", x: 48.2, z: 0.5 }),
+        Object.freeze({ defId: "ash_blocker", x: 55.6, z: 0 }),
+        Object.freeze({ defId: "ash_snuffer", x: 58.4, z: 0.5 }),
       ]),
     }),
   ]),
@@ -303,7 +309,8 @@ export const FIXTURES = Object.freeze({
   }),
 });
 
-export function validateCatalog() {
+export function validateCatalog(overrides = {}) {
+  const zone = overrides.ZONE_DEF || ZONE_DEF;
   const errors = [];
   const seenGlobalMoves = new Set();
 
@@ -331,29 +338,45 @@ export function validateCatalog() {
   }
 
   unique(Object.values(ITEM_DEFS), "item");
-  unique(ZONE_DEF.shrines, "shrine");
-  unique(ZONE_DEF.gates, "gate");
-  unique(ZONE_DEF.pickups, "pickup");
-  unique(ZONE_DEF.spawns, "spawn");
-  unique(ZONE_DEF.collisions, "collision");
-  unique(ZONE_DEF.landmarks, "landmark");
-  unique(ZONE_DEF.lights, "light");
+  unique(zone.shrines, "shrine");
+  unique(zone.gates, "gate");
+  unique(zone.pickups, "pickup");
+  unique(zone.spawns, "spawn");
+  unique(zone.collisions, "collision");
+  unique(zone.landmarks, "landmark");
+  unique(zone.lights, "light");
+  unique(zone.waves || [], "wave");
 
-  const shrineIds = new Set(ZONE_DEF.shrines.map((s) => s.id));
-  for (const shrine of ZONE_DEF.shrines) {
+  const shrineIds = new Set(zone.shrines.map((s) => s.id));
+  for (const shrine of zone.shrines) {
     if (!["checkpoint", "win"].includes(shrine.role)) errors.push(`shrine ${shrine.id}: bad role`);
   }
-  for (const gate of ZONE_DEF.gates) {
+  for (const gate of zone.gates) {
     if (!shrineIds.has(gate.opensOn)) errors.push(`gate ${gate.id}: unknown opensOn ${gate.opensOn}`);
   }
-  for (const p of ZONE_DEF.pickups) {
+  for (const p of zone.pickups) {
     if (!ITEM_DEFS[p.defId]) errors.push(`pickup ${p.id}: unknown def ${p.defId}`);
   }
-  for (const s of ZONE_DEF.spawns) {
+  for (const s of zone.spawns) {
     if (!ENEMY_DEFS[s.defId]) errors.push(`spawn ${s.id}: unknown def ${s.defId}`);
   }
-  for (const light of ZONE_DEF.lights) {
+  for (const light of zone.lights) {
     if (!light.emitterId) errors.push(`light ${light.id}: missing emitter`);
+  }
+  for (const wave of zone.waves || []) {
+    if (typeof wave.triggerX !== "number" || wave.triggerX < zone.bounds.minX || wave.triggerX > zone.bounds.maxX) {
+      errors.push(`wave ${wave.id}: triggerX outside bounds`);
+    }
+    if (typeof wave.bannerDelay === "number" && wave.bannerDelay < 0) {
+      errors.push(`wave ${wave.id}: bannerDelay must be >= 0`);
+    }
+    if (!wave.spawns?.length) {
+      errors.push(`wave ${wave.id}: no spawns`);
+    } else {
+      for (const spawn of wave.spawns) {
+        if (!ENEMY_DEFS[spawn.defId]) errors.push(`wave ${wave.id}: unknown def ${spawn.defId}`);
+      }
+    }
   }
   if (Math.abs(PLANE_Y) > 0) errors.push("gameplay plane must stay at y=0");
 

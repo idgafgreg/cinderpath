@@ -2,6 +2,7 @@ import {
   ENEMY_DEFS,
   FIXTURES,
   ITEM_DEFS,
+  OUTRO_DEF,
   PLAYER_DEF,
   UPGRADE_DEFS,
   WEATHER_DEFS,
@@ -302,6 +303,17 @@ export function pendingWave(state) {
     waveId: state.pendingWave.waveId,
     label: state.pendingWave.label,
     remaining: Math.max(0, state.pendingWave.remaining),
+  };
+}
+
+export function outroFor(state) {
+  if (state.phase !== PHASE.WIN || typeof state.winAt !== "number") return null;
+  const t = Math.max(0, state.time - state.winAt);
+  return {
+    kindleT: OUTRO_DEF.kindle,
+    bannerAt: OUTRO_DEF.bannerAt,
+    kindleDone: t >= OUTRO_DEF.kindle,
+    bannerReady: t >= OUTRO_DEF.bannerAt,
   };
 }
 
@@ -777,6 +789,7 @@ function checkObjectives(state) {
     p.fuel = 0;
     p.stance = STANCE.DEAD;
     state.phase = PHASE.LOSE;
+    state.pendingWave = null;
     state.events.push({ type: "lose", reason: "lantern_out", t: state.time });
     return;
   }
@@ -789,7 +802,9 @@ function checkObjectives(state) {
     }
     if (shrine.role === "win") {
       state.phase = PHASE.WIN;
-      state.events.push({ type: "win", t: state.time });
+      state.pendingWave = null;
+      state.winAt = state.time;
+      state.events.push({ type: "win", fuel: p.fuel, t: state.time });
     }
   }
 }
@@ -810,7 +825,14 @@ export function step(state, input, dt) {
     return state.events.slice(eventsBefore);
   }
 
-  if (state.phase === PHASE.WIN || state.phase === PHASE.LOSE) {
+  if (state.phase === PHASE.WIN) {
+    if (typeof state.winAt === "number" && state.time - state.winAt < OUTRO_DEF.bannerAt + 0.5) {
+      state.time += clamped;
+    }
+    return state.events.slice(eventsBefore);
+  }
+
+  if (state.phase === PHASE.LOSE) {
     return state.events.slice(eventsBefore);
   }
 

@@ -172,6 +172,7 @@ html, body {
   text-transform: uppercase;
   font-size: 13px;
   color: var(--ink);
+  pointer-events: none;
 }
 
 .wave-banner[hidden] { display: none; }

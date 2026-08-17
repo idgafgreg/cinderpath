@@ -12,7 +12,7 @@ Competent, not heroic. You read a telegraph, spend wick on purpose, and arrive w
 
 ## Loop
 
-Title → walk the plane → lantern arc → ash wight → wayshrine checkpoint → bright oil (optional) → scripted waves (blocker, then snuffer, then both) → ember hearth or darkness → continue from last shrine or retry. A ghost of the last successful walk may share the road. It cannot touch you.
+Title → walk the plane → lantern arc → ash wight → wayshrine checkpoint → bright oil (optional) → scripted waves (blocker, then snuffer, then both) → ember hearth or darkness → continue from last shrine or retry. A ghost of the last successful walk may share the road. It cannot touch you. Winning plays a short outro: the lantern's fire passes to the hearth, the hearth blazes, the camera pulls back, then the banner reads the wick you carried.
 
 ## Verbs
 
