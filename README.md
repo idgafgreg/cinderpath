@@ -70,8 +70,7 @@ Combat is a state machine. Hits come from wedge contact during an `active` windo
 
 Only after this road stays green:
 
-1. A telegraph ring that dims the moment the active window opens
-2. A sound toggle (M) with a persisted preference
+1. A sound toggle (M) with a persisted preference
 
 ## License
 
