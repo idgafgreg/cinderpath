@@ -69,10 +69,10 @@ Combat is a state machine. Hits come from wedge contact during an `active` windo
 
 Only after this road stays green:
 
-1. Authored encounter waves on the second road
-2. A short directed ending after the hearth
-3. A quieter mix: distinct slam / spit / oil / grit / flare / ring cues
-4. A telegraph ring that dims the moment the active window opens
+1. A short directed ending after the hearth
+2. A quieter mix: distinct slam / spit / oil / grit / flare / ring cues
+3. A telegraph ring that dims the moment the active window opens
+4. A wave banner that names the incoming threat before it spawns
 
 ## License
 

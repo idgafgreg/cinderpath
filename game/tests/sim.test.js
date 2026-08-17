@@ -400,3 +400,30 @@ test("telegraph wedge cuts out the instant the active window opens", () => {
   assert.equal(telegraphFor(snuffer), null, "no lingering glow once the active window opens");
   assert.equal(state.player.hp, undefined);
 });
+
+test("second-road enemies arrive in scripted waves", () => {
+  const state = playable("combat");
+  assert.ok(state.enemies.some((e) => e.defId === "ash_wight"), "first-road wights are always present");
+  assert.ok(!state.enemies.some((e) => e.defId === "ash_blocker"), "blocker not present before its wave");
+  assert.ok(!state.enemies.some((e) => e.defId === "ash_snuffer"), "snuffer not present before its wave");
+
+  state.player.x = 37;
+  const ev1 = step(state, emptyInput(), 1 / 60);
+  assert.ok(state.enemies.some((e) => e.defId === "ash_blocker"), "blocker wave fires past its trigger");
+  assert.ok(ev1.some((e) => e.type === "wave" && e.waveId === "wave_blocker"));
+
+  state.player.x = 45;
+  step(state, emptyInput(), 1 / 60);
+  assert.ok(state.enemies.some((e) => e.defId === "ash_snuffer"), "snuffer wave fires past its trigger");
+
+  state.player.x = 53;
+  step(state, emptyInput(), 1 / 60);
+  assert.ok(state.enemies.filter((e) => e.defId === "ash_blocker").length >= 2, "both wave adds a second blocker");
+  assert.ok(state.enemies.filter((e) => e.defId === "ash_snuffer").length >= 2, "both wave adds a second snuffer");
+
+  const count = state.enemies.length;
+  state.player.x = 60;
+  step(state, emptyInput(), 1 / 60);
+  assert.equal(state.enemies.length, count, "waves must not re-fire");
+  assert.equal(state.player.hp, undefined);
+});

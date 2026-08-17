@@ -235,8 +235,48 @@ function applyFixture(state, fixtureName) {
     if (typeof fixture.player.fuel === "number") state.player.fuel = fixture.player.fuel;
   }
   if (fixture.litShrines) state.litShrines = [...fixture.litShrines];
+  if (fixture.waves) {
+    for (const waveId of fixture.waves) fireWave(state, waveId);
+  }
   state.phase = PHASE.PLAY;
   state.fixture = fixtureName;
+}
+
+function spawnEnemy(state, spawn) {
+  const def = ENEMY_DEFS[spawn.defId];
+  const id = `${spawn.defId}_${state.enemySeq++}`;
+  state.enemies.push({
+    id,
+    defId: def.id,
+    x: spawn.x,
+    z: spawn.z,
+    facingX: -1,
+    facingZ: 0,
+    hp: def.maxHp,
+    stance: STANCE.IDLE,
+    phaseT: 0,
+    actionId: null,
+    hitSet: [],
+    repathT: 0,
+    aggro: false,
+  });
+  return id;
+}
+
+function fireWave(state, waveId) {
+  if (state.firedWaves.includes(waveId)) return;
+  const wave = (ZONE_DEF.waves || []).find((w) => w.id === waveId);
+  if (!wave) return;
+  state.firedWaves.push(waveId);
+  for (const spawn of wave.spawns) spawnEnemy(state, spawn);
+  state.events.push({ type: "wave", waveId, t: state.time });
+}
+
+function stepWaves(state) {
+  for (const wave of ZONE_DEF.waves || []) {
+    if (state.firedWaves.includes(wave.id)) continue;
+    if (state.player.x >= wave.triggerX) fireWave(state, wave.id);
+  }
 }
 
 export function createGame({ seed = 1, fixture = null, save = null, ghost = null } = {}) {
@@ -254,6 +294,8 @@ export function createGame({ seed = 1, fixture = null, save = null, ghost = null
     actionSeq: 0,
     events: [],
     litShrines: [],
+    firedWaves: [],
+    enemySeq: 0,
     upgrades: { brightOil: false },
     trail: [],
     trailAcc: 0,
@@ -323,6 +365,7 @@ export function serializeSave(state) {
     facingX: state.player.facingX,
     facingZ: state.player.facingZ,
     litShrines: [...state.litShrines],
+    firedWaves: [...state.firedWaves],
     pickupsTaken: state.pickups.filter((p) => p.taken).map((p) => p.id),
     enemiesDead: state.enemies.filter((e) => e.stance === STANCE.DEAD).map((e) => e.id),
     upgrades: { ...state.upgrades },
@@ -340,6 +383,11 @@ export function applySave(state, save) {
   if (typeof save.facingX === "number") state.player.facingX = save.facingX;
   if (typeof save.facingZ === "number") state.player.facingZ = save.facingZ;
   state.litShrines = [...(save.litShrines || [])];
+  state.firedWaves = [...(save.firedWaves || [])];
+  for (const waveId of state.firedWaves) {
+    const wave = (ZONE_DEF.waves || []).find((w) => w.id === waveId);
+    if (wave) for (const spawn of wave.spawns) spawnEnemy(state, spawn);
+  }
   const taken = new Set(save.pickupsTaken || []);
   for (const pickup of state.pickups) pickup.taken = taken.has(pickup.id);
   const dead = new Set(save.enemiesDead || []);
@@ -750,6 +798,7 @@ export function step(state, input, dt) {
   state.player.fuel = Math.max(0, state.player.fuel - drainFor(state) * clamped);
 
   stepPlayer(state, input, clamped);
+  stepWaves(state);
   for (const enemy of state.enemies) stepEnemy(state, enemy, clamped);
   collectPickups(state);
   recordTrail(state, clamped);

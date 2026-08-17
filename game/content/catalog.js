@@ -202,8 +202,26 @@ export const ZONE_DEF = Object.freeze({
   spawns: Object.freeze([
     Object.freeze({ id: "wight_a", defId: "ash_wight", x: 9.2, z: -0.6 }),
     Object.freeze({ id: "wight_b", defId: "ash_wight", x: 21.4, z: 0.8 }),
-    Object.freeze({ id: "blocker_a", defId: "ash_blocker", x: 40.1, z: 0 }),
-    Object.freeze({ id: "snuffer_a", defId: "ash_snuffer", x: 48.2, z: 0.5 }),
+  ]),
+  waves: Object.freeze([
+    Object.freeze({
+      id: "wave_blocker",
+      triggerX: 36,
+      spawns: Object.freeze([Object.freeze({ defId: "ash_blocker", x: 40.1, z: 0 })]),
+    }),
+    Object.freeze({
+      id: "wave_snuffer",
+      triggerX: 44,
+      spawns: Object.freeze([Object.freeze({ defId: "ash_snuffer", x: 48.2, z: 0.5 })]),
+    }),
+    Object.freeze({
+      id: "wave_both",
+      triggerX: 52,
+      spawns: Object.freeze([
+        Object.freeze({ defId: "ash_blocker", x: 40.1, z: 0 }),
+        Object.freeze({ defId: "ash_snuffer", x: 48.2, z: 0.5 }),
+      ]),
+    }),
   ]),
   lights: Object.freeze([
     Object.freeze({
@@ -256,21 +274,25 @@ export const FIXTURES = Object.freeze({
   snuffer: Object.freeze({
     player: Object.freeze({ x: 46.4, z: 0, fuel: 70 }),
     litShrines: Object.freeze(["wayshrine"]),
+    waves: Object.freeze(["wave_blocker", "wave_snuffer"]),
     note: "Second road, inside snuffer keep-range.",
   }),
   hearth: Object.freeze({
     player: Object.freeze({ x: 60.2, z: 0, fuel: 42 }),
     litShrines: Object.freeze(["wayshrine"]),
+    waves: Object.freeze(["wave_blocker", "wave_snuffer", "wave_both"]),
     note: "Last steps to the ember hearth.",
   }),
   blocker: Object.freeze({
     player: Object.freeze({ x: 38.2, z: 0, fuel: 64 }),
     litShrines: Object.freeze(["wayshrine"]),
+    waves: Object.freeze(["wave_blocker"]),
     note: "Second road, facing the ash blocker.",
   }),
   oil: Object.freeze({
     player: Object.freeze({ x: 34.6, z: 1.15, fuel: 58 }),
     litShrines: Object.freeze(["wayshrine"]),
+    waves: Object.freeze(["wave_blocker"]),
     note: "Next to the bright-oil vial.",
   }),
 });

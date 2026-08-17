@@ -12,7 +12,7 @@ Competent, not heroic. You read a telegraph, spend wick on purpose, and arrive w
 
 ## Loop
 
-Title → walk the plane → lantern arc → ash wight → wayshrine checkpoint → bright oil (optional) → ash blocker → ash snuffer → ember hearth or darkness → continue from last shrine or retry. A ghost of the last successful walk may share the road. It cannot touch you.
+Title → walk the plane → lantern arc → ash wight → wayshrine checkpoint → bright oil (optional) → scripted waves (blocker, then snuffer, then both) → ember hearth or darkness → continue from last shrine or retry. A ghost of the last successful walk may share the road. It cannot touch you.
 
 ## Verbs
 
@@ -26,7 +26,7 @@ Title → walk the plane → lantern arc → ash wight → wayshrine checkpoint 
 ## Space
 
 One plane, y = 0. Road along +X. Bounds `x -4..68`, `z -4.4..4.4`.
-Wayshrine checkpoint at `30.4, 0`. Ash gate at `x 32.7..33.8` until the wayshrine is lit. Past the gate (`x >= 33.8`) the weather is ashnight: thicker fog, dimmer moon. Ember hearth win at `62, 0`. The lantern and bright oil change how far you can read the road. They are not a second meter.
+Wayshrine checkpoint at `30.4, 0`. Ash gate at `x 32.7..33.8` until the wayshrine is lit. Past the gate (`x >= 33.8`) the weather is ashnight: thicker fog, dimmer moon. The second road is paced by scripted waves: blocker at `x 36`, snuffer at `x 44`, both at `x 52`. Ember hearth win at `62, 0`. The lantern and bright oil change how far you can read the road. They are not a second meter.
 
 ## Economy
 
