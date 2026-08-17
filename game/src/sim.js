@@ -59,6 +59,9 @@ export function telegraphFor(enemy) {
     x: enemy.x,
     z: enemy.z,
     radius: def.attack.range,
+    halfAngle: def.attack.halfAngle,
+    facingX: enemy.facingX,
+    facingZ: enemy.facingZ,
     progress: Math.max(0, Math.min(1, enemy.phaseT / startup)),
   };
 }

@@ -72,7 +72,7 @@ Only after this road stays green:
 1. Authored encounter waves on the second road
 2. A short directed ending after the hearth
 3. A quieter mix: distinct slam / spit / oil / grit / flare / ring cues
-4. A facing wedge on the telegraph ring so spit direction is obvious
+4. A telegraph ring that pulses inward as the startup clock nears contact
 
 ## License
 

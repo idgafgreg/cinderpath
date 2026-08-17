@@ -25,7 +25,7 @@ Then implement against that table:
 
 ## Tuning bar
 
-The wickwarden swing is short and honest. The ash wight lunge is longer in startup so a player who watched the ember ring can step out. Snuff spit uses an ice ring. Do not add an unpunishable move.
+The wickwarden swing is short and honest. The ash wight lunge is longer in startup so a player who watched the ember wedge can step out. Snuff spit uses an ice wedge that points the way the snuffer is aiming. Do not add an unpunishable move.
 
 ## Done when
 

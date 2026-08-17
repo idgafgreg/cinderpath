@@ -340,3 +340,18 @@ test("ground telegraph rings name the verb during startup only", () => {
   assert.equal(telegraphFor(wight), null);
   assert.equal(state.player.hp, undefined);
 });
+
+test("telegraph wedge faces the enemy and spans the attack half-angle", () => {
+  const state = playable("snuffer");
+  const snuffer = state.enemies.find((e) => e.defId === "ash_snuffer");
+  snuffer.stance = STANCE.STARTUP;
+  snuffer.phaseT = 0.1;
+  snuffer.facingX = 1;
+  snuffer.facingZ = 0;
+  const tel = telegraphFor(snuffer);
+  assert.equal(tel.color, "ice");
+  assert.ok(Math.abs(tel.facingX - 1) < 1e-6);
+  assert.ok(Math.abs(tel.facingZ) < 1e-6);
+  assert.ok(Math.abs(tel.halfAngle - ENEMY_DEFS.ash_snuffer.attack.halfAngle) < 1e-6);
+  assert.equal(state.player.hp, undefined);
+});
