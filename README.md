@@ -4,7 +4,7 @@ An original lantern-road action slice and the agent skills used to build it.
 
 ![Cinderpath title](docs/title.png)
 
-You are the last wickwarden. The road is being eaten by ash. Your lantern is your life. Walk the flat path, spend wick to swing, step out of a wight's telegraph, gather cinders, and put the fire on the wayshrine before the flame dies.
+You are the last wickwarden. The road is being eaten by ash. Your lantern is your life. Walk the flat path, spend wick to swing, step out of a wight's telegraph, light the wayshrine to open the gate, keep range on the snuffer, and put the fire on the ember hearth.
 
 **Play:** [idgafgreg.github.io/cinderpath](https://idgafgreg.github.io/cinderpath/)
 
@@ -22,6 +22,9 @@ Review states:
 - `/?fixture=combat`
 - `/?fixture=lowfuel`
 - `/?fixture=shrine`
+- `/?fixture=gate`
+- `/?fixture=snuffer`
+- `/?fixture=hearth`
 - `/?debug=1&seed=7`
 
 Controls: **WASD** move · **Space / click** swing · **Esc** pause · **R** restart
@@ -62,12 +65,12 @@ Combat is a state machine. Hits come from wedge contact during an `active` windo
 
 ## Next slices
 
-Only after the current road stays green:
+Only after this road stays green:
 
-1. A second enemy role (blocker or snuffer)
-2. A second road with a gate
-3. A save of wick + shrine checkpoints
-4. Touch controls as a first-class layout
+1. A third role (blocker) or a night-weather modifier
+2. A wick upgrade that does not become a second life meter
+3. Authored encounter waves on the second road
+4. A recorded ghost of your last successful walk
 
 ## License
 

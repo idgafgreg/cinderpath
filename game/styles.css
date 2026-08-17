@@ -204,6 +204,55 @@ kbd {
 
 .debug:empty, .debug[hidden] { display: none; }
 
+.touch {
+  position: fixed;
+  inset: auto 0 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 18px max(22px, env(safe-area-inset-right)) max(28px, env(safe-area-inset-bottom)) max(22px, env(safe-area-inset-left));
+  pointer-events: none;
+}
+
+.touch[hidden] { display: none; }
+
+.stick {
+  pointer-events: auto;
+  width: 118px;
+  height: 118px;
+  border-radius: 50%;
+  border: 1px solid rgba(243, 234, 216, 0.22);
+  background: rgba(12, 10, 8, 0.35);
+  position: relative;
+  touch-action: none;
+}
+
+.stick i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  border-radius: 50%;
+  background: rgba(243, 201, 105, 0.85);
+  box-shadow: 0 0 16px rgba(224, 122, 61, 0.45);
+}
+
+.swing {
+  pointer-events: auto;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  border: 1px solid rgba(243, 201, 105, 0.35);
+  background: rgba(224, 122, 61, 0.28);
+  color: var(--ink);
+  font: 500 13px/1 "IBM Plex Sans", sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  touch-action: manipulation;
+}
+
 @media (max-width: 700px) {
   .hud { padding: 14px 14px 0; }
   .fuel { min-width: 140px; }

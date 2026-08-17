@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { ENEMY_DEFS, PLAYER_DEF, validateCatalog } from "../content/catalog.js";
-import { PHASE, STANCE, createGame, emptyInput, step } from "../src/sim.js";
+import { PHASE, STANCE, createGame, emptyInput, serializeSave, step } from "../src/sim.js";
 
 function flush(state, input, seconds, hz = 60) {
   const dt = 1 / hz;
@@ -89,12 +89,79 @@ test("lantern out loses the run", () => {
   assert.equal(state.player.stance, STANCE.DEAD);
 });
 
-test("reaching the shrine wins", () => {
+test("lighting the first shrine is a checkpoint, not a win", () => {
   const state = playable("shrine");
   state.player.x = 30.4;
   state.player.z = 0;
+  const events = step(state, emptyInput(), 1 / 60);
+  assert.equal(state.phase, PHASE.PLAY);
+  assert.ok(state.litShrines.includes("wayshrine"));
+  assert.ok(events.some((e) => e.type === "shrine_lit" && e.id === "wayshrine"));
+  step(state, emptyInput(), 1 / 60);
+  assert.equal(state.events.filter((e) => e.type === "shrine_lit").length, 1);
+});
+
+test("a closed gate blocks the second road", () => {
+  const state = playable("gate");
+  const before = state.player.x;
+  flush(state, { ...emptyInput(), x: 1 }, 1.2);
+  assert.ok(state.player.x < 33.8, `gate should hold the player, got x=${state.player.x}`);
+  assert.ok(state.player.x >= before - 0.05);
+});
+
+test("lighting the wayshrine opens the gate", () => {
+  const state = playable("gate");
+  state.player.x = 30.4;
+  state.player.z = 0;
+  step(state, emptyInput(), 1 / 60);
+  assert.ok(state.litShrines.includes("wayshrine"));
+  state.player.x = 32.0;
+  state.player.z = 0;
+  flush(state, { ...emptyInput(), x: 1 }, 1.4);
+  assert.ok(state.player.x > 34, "open gate must let the wickwarden onto the second road");
+});
+
+test("the ember hearth wins the run", () => {
+  const state = playable("hearth");
+  state.player.x = 62;
+  state.player.z = 0;
   step(state, emptyInput(), 1 / 60);
   assert.equal(state.phase, PHASE.WIN);
+});
+
+test("snuffer keeps range and telegraphs before contact", () => {
+  const state = playable("snuffer");
+  const snuffer = state.enemies.find((e) => e.defId === "ash_snuffer");
+  assert.ok(snuffer, "catalog must spawn an ash_snuffer");
+  snuffer.x = state.player.x + 1.4;
+  snuffer.z = state.player.z;
+  snuffer.aggro = true;
+  const startX = snuffer.x;
+  const events = flush(state, emptyInput(), 0.45);
+  assert.ok(snuffer.x > startX, "snuffer should step back instead of lunging");
+  flush(state, emptyInput(), 2.2);
+  assert.ok(
+    state.events.some((e) => e.type === "enemy_telegraph" && e.moveId === "snuff_spit") ||
+      events.some((e) => e.type === "enemy_telegraph"),
+    "snuff spit must telegraph",
+  );
+});
+
+test("save restores wick, shrine, and spent pickups", () => {
+  const state = playable("shrine");
+  state.player.fuel = 44;
+  state.player.x = 30.4;
+  state.player.z = 0;
+  state.pickups[0].taken = true;
+  step(state, emptyInput(), 1 / 60);
+  const blob = serializeSave(state);
+  const restored = createGame({ seed: state.seed, save: blob });
+  restored.phase = PHASE.PLAY;
+  assert.equal(Math.round(restored.player.fuel), 44);
+  assert.ok(Math.abs(restored.player.x - 30.4) < 0.05);
+  assert.ok(restored.litShrines.includes("wayshrine"));
+  assert.equal(restored.pickups[0].taken, true);
+  assert.equal(restored.phase, PHASE.PLAY);
 });
 
 test("pause freezes simulation time", () => {

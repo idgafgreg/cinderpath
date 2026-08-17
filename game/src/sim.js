@@ -60,11 +60,19 @@ function circleHitsAabb(x, z, r, box) {
   return dx * dx + dz * dz < r * r;
 }
 
-function resolveWorld(x, z, r) {
+function activeBoxes(state) {
+  const boxes = [...ZONE_DEF.collisions];
+  for (const gate of ZONE_DEF.gates || []) {
+    if (!state.litShrines.includes(gate.opensOn)) boxes.push(gate);
+  }
+  return boxes;
+}
+
+function resolveWorld(state, x, z, r) {
   const b = ZONE_DEF.bounds;
   let nx = clamp(x, b.minX + r, b.maxX - r);
   let nz = clamp(z, b.minZ + r, b.maxZ - r);
-  for (const box of ZONE_DEF.collisions) {
+  for (const box of activeBoxes(state)) {
     if (circleHitsAabb(nx, nz, r, box)) {
       const cx = clamp(nx, box.minX, box.maxX);
       const cz = clamp(nz, box.minZ, box.maxZ);
@@ -118,11 +126,12 @@ function applyFixture(state, fixtureName) {
     state.player.z = fixture.player.z;
     if (typeof fixture.player.fuel === "number") state.player.fuel = fixture.player.fuel;
   }
+  if (fixture.litShrines) state.litShrines = [...fixture.litShrines];
   state.phase = PHASE.PLAY;
   state.fixture = fixtureName;
 }
 
-export function createGame({ seed = 1, fixture = null } = {}) {
+export function createGame({ seed = 1, fixture = null, save = null } = {}) {
   const catalogErrors = validateCatalog();
   if (catalogErrors.length) {
     throw new Error(`Catalog invalid:\n- ${catalogErrors.join("\n- ")}`);
@@ -136,6 +145,7 @@ export function createGame({ seed = 1, fixture = null } = {}) {
     tick: 0,
     actionSeq: 0,
     events: [],
+    litShrines: [],
     player: {
       id: "player",
       defId: PLAYER_DEF.id,
@@ -184,7 +194,49 @@ export function createGame({ seed = 1, fixture = null } = {}) {
     },
   };
 
+  if (save) applySave(state, save);
   if (fixture) applyFixture(state, fixture);
+  return state;
+}
+
+export function serializeSave(state) {
+  return {
+    v: 1,
+    seed: state.seed,
+    time: state.time,
+    fuel: state.player.fuel,
+    x: state.player.x,
+    z: state.player.z,
+    facingX: state.player.facingX,
+    facingZ: state.player.facingZ,
+    litShrines: [...state.litShrines],
+    pickupsTaken: state.pickups.filter((p) => p.taken).map((p) => p.id),
+    enemiesDead: state.enemies.filter((e) => e.stance === STANCE.DEAD).map((e) => e.id),
+    stats: { ...state.stats },
+  };
+}
+
+export function applySave(state, save) {
+  if (!save || save.v !== 1) return state;
+  if (typeof save.seed === "number") state.seed = save.seed;
+  if (typeof save.time === "number") state.time = save.time;
+  if (typeof save.fuel === "number") state.player.fuel = save.fuel;
+  if (typeof save.x === "number") state.player.x = save.x;
+  if (typeof save.z === "number") state.player.z = save.z;
+  if (typeof save.facingX === "number") state.player.facingX = save.facingX;
+  if (typeof save.facingZ === "number") state.player.facingZ = save.facingZ;
+  state.litShrines = [...(save.litShrines || [])];
+  const taken = new Set(save.pickupsTaken || []);
+  for (const pickup of state.pickups) pickup.taken = taken.has(pickup.id);
+  const dead = new Set(save.enemiesDead || []);
+  for (const enemy of state.enemies) {
+    if (dead.has(enemy.id)) {
+      enemy.hp = 0;
+      enemy.stance = STANCE.DEAD;
+      enemy.aggro = false;
+    }
+  }
+  if (save.stats) state.stats = { ...state.stats, ...save.stats };
   return state;
 }
 
@@ -243,7 +295,7 @@ function resolveContact(state, attacker, target, move, kind) {
   if (kind === "player") {
     target.hp -= move.damage;
     const n = normalize(target.x - attacker.x, target.z - attacker.z);
-    const pushed = resolveWorld(target.x + n.x * move.knockback, target.z + n.z * move.knockback, ENEMY_DEFS[target.defId].radius);
+    const pushed = resolveWorld(state, target.x + n.x * move.knockback, target.z + n.z * move.knockback, ENEMY_DEFS[target.defId].radius);
     target.x = pushed.x;
     target.z = pushed.z;
     state.stats.hitsLanded += 1;
@@ -275,7 +327,7 @@ function resolveContact(state, attacker, target, move, kind) {
   p.fuel = Math.max(0, p.fuel - move.damage);
   state.stats.damageTaken += move.damage;
   const n = normalize(p.x - attacker.x, p.z - attacker.z);
-  const pushed = resolveWorld(p.x + n.x * move.knockback, p.z + n.z * move.knockback, PLAYER_DEF.radius);
+  const pushed = resolveWorld(state, p.x + n.x * move.knockback, p.z + n.z * move.knockback, PLAYER_DEF.radius);
   p.x = pushed.x;
   p.z = pushed.z;
   p.stance = p.fuel <= 0 ? STANCE.DEAD : STANCE.HURT;
@@ -339,7 +391,7 @@ function stepPlayer(state, input, dt) {
 
   if (move.x || move.z) {
     p.stance = STANCE.MOVE;
-    const next = resolveWorld(p.x + move.x * PLAYER_DEF.speed * dt, p.z + move.z * PLAYER_DEF.speed * dt, PLAYER_DEF.radius);
+    const next = resolveWorld(state, p.x + move.x * PLAYER_DEF.speed * dt, p.z + move.z * PLAYER_DEF.speed * dt, PLAYER_DEF.radius);
     p.x = next.x;
     p.z = next.z;
   } else {
@@ -404,14 +456,23 @@ function stepEnemy(state, enemy, dt) {
   enemy.facingX = n.x;
   enemy.facingZ = n.z;
 
-  if (dist <= def.attackRange && p.stance !== STANCE.DEAD) {
+  if (def.keepRange && dist < def.keepRange.min) {
+    const back = resolveWorld(state, enemy.x - n.x * def.speed * dt, enemy.z - n.z * def.speed * dt, def.radius);
+    enemy.x = back.x;
+    enemy.z = back.z;
+    enemy.stance = STANCE.MOVE;
+    return;
+  }
+
+  const canAttack = dist <= def.attackRange && (!def.keepRange || dist >= def.keepRange.min);
+  if (canAttack && p.stance !== STANCE.DEAD) {
     beginEnemyAttack(state, enemy);
     return;
   }
 
   enemy.repathT -= dt;
   if (enemy.repathT <= 0) enemy.repathT = def.repathInterval;
-  const next = resolveWorld(enemy.x + n.x * def.speed * dt, enemy.z + n.z * def.speed * dt, def.radius);
+  const next = resolveWorld(state, enemy.x + n.x * def.speed * dt, enemy.z + n.z * def.speed * dt, def.radius);
   enemy.x = next.x;
   enemy.z = next.z;
   enemy.stance = STANCE.MOVE;
@@ -441,11 +502,17 @@ function checkObjectives(state) {
     state.events.push({ type: "lose", reason: "lantern_out", t: state.time });
     return;
   }
-  const shrine = ZONE_DEF.shrine;
-  const dist = Math.hypot(p.x - shrine.x, p.z - shrine.z);
-  if (dist <= shrine.radius) {
-    state.phase = PHASE.WIN;
-    state.events.push({ type: "win", t: state.time });
+  for (const shrine of ZONE_DEF.shrines) {
+    const dist = Math.hypot(p.x - shrine.x, p.z - shrine.z);
+    if (dist > shrine.radius) continue;
+    if (!state.litShrines.includes(shrine.id)) {
+      state.litShrines.push(shrine.id);
+      state.events.push({ type: "shrine_lit", id: shrine.id, role: shrine.role, t: state.time });
+    }
+    if (shrine.role === "win") {
+      state.phase = PHASE.WIN;
+      state.events.push({ type: "win", t: state.time });
+    }
   }
 }
 
@@ -505,6 +572,7 @@ export function snapshot(state) {
       z: Number(e.z.toFixed(3)),
     })),
     pickupsLeft: state.pickups.filter((p) => !p.taken).length,
+    litShrines: [...state.litShrines],
     stats: { ...state.stats },
   };
 }

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { ENEMY_DEFS, PLAYER_DEF, ZONE_DEF } from "../content/catalog.js";
+import { PLAYER_DEF, ZONE_DEF } from "../content/catalog.js";
 import { PHASE, STANCE } from "./sim.js";
 
 const COLORS = {
@@ -12,6 +12,7 @@ const COLORS = {
   ember: 0xe07a3d,
   wight: 0x6b737c,
   wightEye: 0xc45a3a,
+  snuffer: 0x4d5a66,
   shrine: 0xe8e0d4,
   pickup: 0xffb347,
   telegraph: 0xff6a3d,
@@ -24,13 +25,13 @@ export function createRenderer(canvas) {
   renderer.shadowMap.enabled = false;
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x0c0a08, 0.046);
+  scene.fog = new THREE.FogExp2(0x0c0a08, 0.028);
 
-  const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 120);
+  const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 220);
   const camOffset = new THREE.Vector3(-11, 13.5, 11);
 
-  scene.add(new THREE.AmbientLight(0x6b6258, 0.38));
-  const moon = new THREE.DirectionalLight(0x8ea0b5, 0.28);
+  scene.add(new THREE.AmbientLight(0x6b6258, 0.5));
+  const moon = new THREE.DirectionalLight(0x8ea0b5, 0.32);
   moon.position.set(-8, 18, -6);
   scene.add(moon);
 
@@ -38,14 +39,19 @@ export function createRenderer(canvas) {
   lantern.position.set(0, 1.4, 0);
   scene.add(lantern);
 
-  const shrineLight = new THREE.PointLight(0xe8e0d4, 1.5, 7, 1.4);
-  shrineLight.position.set(ZONE_DEF.shrine.x, 1.6, ZONE_DEF.shrine.z);
-  scene.add(shrineLight);
+  const shrineLights = new Map();
+  for (const shrine of ZONE_DEF.shrines) {
+    const color = shrine.role === "win" ? 0xe07a3d : 0xe8e0d4;
+    const light = new THREE.PointLight(color, shrine.role === "win" ? 1.8 : 1.5, 7.2, 1.4);
+    light.position.set(shrine.x, 1.6, shrine.z);
+    scene.add(light);
+    shrineLights.set(shrine.id, light);
+  }
 
   const root = new THREE.Group();
   scene.add(root);
 
-  buildWorld(root);
+  const world = buildWorld(root);
   const playerMesh = buildPlayer();
   const enemyMeshes = new Map();
   const pickupMeshes = new Map();
@@ -87,7 +93,7 @@ export function createRenderer(canvas) {
       for (const enemy of state.enemies) {
         let mesh = enemyMeshes.get(enemy.id);
         if (!mesh) {
-          mesh = buildWight();
+          mesh = enemy.defId === "ash_snuffer" ? buildSnuffer() : buildWight();
           enemyMeshes.set(enemy.id, mesh);
           root.add(mesh);
         }
@@ -97,7 +103,8 @@ export function createRenderer(canvas) {
         const cloak = mesh.getObjectByName("cloak");
         if (cloak) {
           const telegraph = enemy.stance === STANCE.STARTUP;
-          cloak.material.color.setHex(telegraph ? COLORS.telegraph : COLORS.wight);
+          const rest = enemy.defId === "ash_snuffer" ? COLORS.snuffer : COLORS.wight;
+          cloak.material.color.setHex(telegraph ? COLORS.telegraph : rest);
           cloak.material.emissive.setHex(telegraph ? COLORS.telegraph : 0x000000);
           cloak.material.emissiveIntensity = telegraph ? 0.7 : 0;
         }
@@ -114,6 +121,12 @@ export function createRenderer(canvas) {
         mesh.visible = !pickup.taken;
         mesh.rotation.y = state.time * 1.6;
         mesh.position.y = 0.35 + Math.sin(state.time * 3 + pickup.x) * 0.08;
+      }
+
+      const gateOpen = state.litShrines.includes("wayshrine");
+      if (world.gateBar) world.gateBar.visible = !gateOpen;
+      for (const [id, light] of shrineLights) {
+        light.intensity = state.litShrines.includes(id) ? 2.2 : 1.15;
       }
 
       if (events.some((e) => e.type === "hit" || e.type === "swing_active")) {
@@ -148,23 +161,23 @@ function mat(color, extras = {}) {
 }
 
 function buildWorld(root) {
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(80, 40), mat(COLORS.ground));
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(160, 40), mat(COLORS.ground));
   ground.rotation.x = -Math.PI / 2;
-  ground.position.set(15, -0.04, 0);
+  ground.position.set(32, -0.04, 0);
   root.add(ground);
 
-  const road = new THREE.Mesh(new THREE.BoxGeometry(40, 0.06, 7.4), mat(COLORS.road));
-  road.position.set(15, 0, 0);
+  const road = new THREE.Mesh(new THREE.BoxGeometry(76, 0.06, 7.4), mat(COLORS.road));
+  road.position.set(32, 0, 0);
   root.add(road);
 
-  const edgeGeo = new THREE.BoxGeometry(40, 0.18, 0.35);
+  const edgeGeo = new THREE.BoxGeometry(76, 0.18, 0.35);
   const north = new THREE.Mesh(edgeGeo, mat(COLORS.rim));
-  north.position.set(15, 0.05, 3.7);
+  north.position.set(32, 0.05, 3.7);
   const south = north.clone();
   south.position.z = -3.7;
   root.add(north, south);
 
-  for (let i = 0; i < 9; i += 1) {
+  for (let i = 0; i < 18; i += 1) {
     const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 1.1, 6), mat(0x2d241c));
     post.position.set(-2 + i * 4.1, 0.55, i % 2 === 0 ? -3.2 : 3.2);
     root.add(post);
@@ -174,30 +187,52 @@ function buildWorld(root) {
   cart.position.set(12.25, 0.35, 2.6);
   root.add(cart);
 
+  const cart2 = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.7, 0.9), mat(0x3d2e22));
+  cart2.position.set(44.5, 0.35, -2.5);
+  root.add(cart2);
+
   const menhir = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.8, 0.45), mat(0x4d4a46));
   menhir.position.set(3.5, 0.9, -2.8);
   root.add(menhir);
 
+  root.add(buildShrine(ZONE_DEF.shrines[0], COLORS.shrine, 0xf3c969));
+  root.add(buildShrine(ZONE_DEF.shrines[1], 0xe07a3d, 0xff8a4a));
+
+  const gate = new THREE.Group();
+  const postL = new THREE.Mesh(new THREE.BoxGeometry(0.45, 2.4, 0.45), mat(0x3a342c));
+  const postR = postL.clone();
+  postL.position.set(33.25, 1.2, -2.15);
+  postR.position.set(33.25, 1.2, 2.15);
+  const gateBar = new THREE.Mesh(new THREE.BoxGeometry(0.22, 1.15, 4.1), mat(0x5a4634));
+  gateBar.position.set(33.25, 1.05, 0);
+  gateBar.name = "gateBar";
+  gate.add(postL, postR, gateBar);
+  root.add(gate);
+
+  for (const x of [8, 18, 26, 41, 52]) {
+    const ash = new THREE.Mesh(new THREE.CircleGeometry(0.7, 10), new THREE.MeshBasicMaterial({ color: 0x2a2622 }));
+    ash.rotation.x = -Math.PI / 2;
+    ash.position.set(x, 0.031, x % 10 === 8 || x === 52 ? 1.4 : -1.6);
+    root.add(ash);
+  }
+
+  return { gateBar };
+}
+
+function buildShrine(def, stone, flameColor) {
   const shrine = new THREE.Group();
   const plinth = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.25, 0.28, 8), mat(0x5a5348));
   plinth.position.y = 0.14;
-  const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 2.1, 8), mat(COLORS.shrine));
+  const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 2.1, 8), mat(stone));
   pillar.position.y = 1.2;
   const flame = new THREE.Mesh(
     new THREE.SphereGeometry(0.22, 10, 10),
-    new THREE.MeshStandardMaterial({ color: 0xffe7a8, emissive: 0xf3c969, emissiveIntensity: 1.4 }),
+    new THREE.MeshStandardMaterial({ color: 0xffe7a8, emissive: flameColor, emissiveIntensity: 1.4 }),
   );
   flame.position.y = 2.35;
   shrine.add(plinth, pillar, flame);
-  shrine.position.set(ZONE_DEF.shrine.x, 0, ZONE_DEF.shrine.z);
-  root.add(shrine);
-
-  for (const x of [8, 18, 26]) {
-    const ash = new THREE.Mesh(new THREE.CircleGeometry(0.7, 10), new THREE.MeshBasicMaterial({ color: 0x2a2622 }));
-    ash.rotation.x = -Math.PI / 2;
-    ash.position.set(x, 0.031, x % 10 === 8 ? 1.4 : -1.6);
-    root.add(ash);
-  }
+  shrine.position.set(def.x, 0, def.z);
+  return shrine;
 }
 
 function buildPlayer() {
@@ -236,10 +271,25 @@ function buildWight() {
   return g;
 }
 
+function buildSnuffer() {
+  const g = new THREE.Group();
+  const cloak = new THREE.Mesh(new THREE.ConeGeometry(0.36, 1.7, 6), mat(COLORS.snuffer));
+  cloak.position.y = 0.85;
+  cloak.name = "cloak";
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 8), mat(0x1c2228));
+  head.position.y = 1.62;
+  const mouth = new THREE.Mesh(
+    new THREE.SphereGeometry(0.07, 6, 6),
+    new THREE.MeshStandardMaterial({ color: 0x7ec8ff, emissive: 0x3d7ea6, emissiveIntensity: 0.85 }),
+  );
+  mouth.position.set(0, 1.58, 0.16);
+  g.add(cloak, head, mouth);
+  return g;
+}
+
 function buildCinder() {
-  const mesh = new THREE.Mesh(
+  return new THREE.Mesh(
     new THREE.OctahedronGeometry(0.18),
     new THREE.MeshStandardMaterial({ color: COLORS.pickup, emissive: COLORS.ember, emissiveIntensity: 0.85 }),
   );
-  return mesh;
 }

@@ -53,6 +53,32 @@ export const ENEMY_DEFS = Object.freeze({
     }),
     rewards: Object.freeze({ cinders: 10 }),
   }),
+  ash_snuffer: Object.freeze({
+    id: "ash_snuffer",
+    displayName: "Ash Snuffer",
+    role: "snuffer",
+    radius: 0.48,
+    height: 1.85,
+    speed: 1.85,
+    maxHp: 92,
+    aggroRange: 10.5,
+    disengageRange: 14,
+    attackRange: 4.35,
+    repathInterval: 0.16,
+    keepRange: Object.freeze({ min: 2.3, prefer: 3.6 }),
+    attack: Object.freeze({
+      id: "snuff_spit",
+      startup: 0.52,
+      active: 0.16,
+      recovery: 0.88,
+      range: 4.45,
+      halfAngle: 0.36,
+      damage: 18,
+      knockback: 0.55,
+      minCommit: 0.52,
+    }),
+    rewards: Object.freeze({ cinders: 16 }),
+  }),
 });
 
 export const ITEM_DEFS = Object.freeze({
@@ -67,28 +93,49 @@ export const ITEM_DEFS = Object.freeze({
 export const ZONE_DEF = Object.freeze({
   id: "cinder_road",
   displayName: "The Cinder Road",
-  bounds: Object.freeze({ minX: -4, maxX: 34, minZ: -4.4, maxZ: 4.4 }),
+  bounds: Object.freeze({ minX: -4, maxX: 68, minZ: -4.4, maxZ: 4.4 }),
   start: Object.freeze({ x: -1.2, z: 0 }),
-  shrine: Object.freeze({ x: 30.4, z: 0, radius: 1.35 }),
+  shrine: Object.freeze({ id: "wayshrine", x: 30.4, z: 0, radius: 1.35, role: "checkpoint" }),
+  shrines: Object.freeze([
+    Object.freeze({ id: "wayshrine", x: 30.4, z: 0, radius: 1.35, role: "checkpoint" }),
+    Object.freeze({ id: "ember_hearth", x: 62, z: 0, radius: 1.35, role: "win" }),
+  ]),
+  gates: Object.freeze([
+    Object.freeze({
+      id: "ash_gate",
+      minX: 32.7,
+      maxX: 33.8,
+      minZ: -3.85,
+      maxZ: 3.85,
+      opensOn: "wayshrine",
+    }),
+  ]),
   landmarks: Object.freeze([
     Object.freeze({ id: "gate_stones", x: 3.5, z: -2.8, kind: "menhir" }),
     Object.freeze({ id: "fallen_cart", x: 12.2, z: 2.6, kind: "cart" }),
     Object.freeze({ id: "wayshrine", x: 30.4, z: 0, kind: "shrine" }),
+    Object.freeze({ id: "ash_gate_mark", x: 33.25, z: 0, kind: "gate" }),
+    Object.freeze({ id: "split_cart", x: 44.5, z: -2.5, kind: "cart" }),
+    Object.freeze({ id: "ember_hearth", x: 62, z: 0, kind: "hearth" }),
   ]),
   collisions: Object.freeze([
-    Object.freeze({ id: "north_wall", minX: -4, maxX: 34, minZ: 3.85, maxZ: 4.4 }),
-    Object.freeze({ id: "south_wall", minX: -4, maxX: 34, minZ: -4.4, maxZ: -3.85 }),
+    Object.freeze({ id: "north_wall", minX: -4, maxX: 68, minZ: 3.85, maxZ: 4.4 }),
+    Object.freeze({ id: "south_wall", minX: -4, maxX: 68, minZ: -4.4, maxZ: -3.85 }),
     Object.freeze({ id: "cart_block", minX: 11.4, maxX: 13.1, minZ: 2.05, maxZ: 3.2 }),
     Object.freeze({ id: "gate_block", minX: 2.9, maxX: 4.2, minZ: -3.4, maxZ: -2.2 }),
+    Object.freeze({ id: "split_cart_block", minX: 43.7, maxX: 45.4, minZ: -3.2, maxZ: -1.95 }),
   ]),
   pickups: Object.freeze([
     Object.freeze({ id: "cinder_a", defId: "cinder", x: 6.4, z: 1.6 }),
     Object.freeze({ id: "cinder_b", defId: "cinder", x: 16.8, z: -1.4 }),
     Object.freeze({ id: "cinder_c", defId: "cinder", x: 24.6, z: 1.1 }),
+    Object.freeze({ id: "cinder_d", defId: "cinder", x: 39.2, z: -1.2 }),
+    Object.freeze({ id: "cinder_e", defId: "cinder", x: 54.6, z: 1.4 }),
   ]),
   spawns: Object.freeze([
     Object.freeze({ id: "wight_a", defId: "ash_wight", x: 9.2, z: -0.6 }),
     Object.freeze({ id: "wight_b", defId: "ash_wight", x: 21.4, z: 0.8 }),
+    Object.freeze({ id: "snuffer_a", defId: "ash_snuffer", x: 48.2, z: 0.5 }),
   ]),
   lights: Object.freeze([
     Object.freeze({
@@ -109,6 +156,15 @@ export const ZONE_DEF = Object.freeze({
       range: 6.5,
       moving: false,
     }),
+    Object.freeze({
+      id: "hearth_brazier",
+      emitterId: "ember_hearth",
+      kind: "brazier",
+      color: "#e07a3d",
+      intensity: 1.9,
+      range: 7.2,
+      moving: false,
+    }),
   ]),
 });
 
@@ -123,45 +179,77 @@ export const FIXTURES = Object.freeze({
   }),
   shrine: Object.freeze({
     player: Object.freeze({ x: 28.6, z: 0, fuel: 40 }),
-    note: "Last steps to the wayshrine.",
+    note: "Last steps to the wayshrine checkpoint.",
+  }),
+  gate: Object.freeze({
+    player: Object.freeze({ x: 32.15, z: 0, fuel: 55 }),
+    note: "Facing the closed ash gate, outside the wayshrine radius.",
+  }),
+  snuffer: Object.freeze({
+    player: Object.freeze({ x: 46.4, z: 0, fuel: 70 }),
+    litShrines: Object.freeze(["wayshrine"]),
+    note: "Second road, inside snuffer keep-range.",
+  }),
+  hearth: Object.freeze({
+    player: Object.freeze({ x: 60.2, z: 0, fuel: 42 }),
+    litShrines: Object.freeze(["wayshrine"]),
+    note: "Last steps to the ember hearth.",
   }),
 });
 
 export function validateCatalog() {
   const errors = [];
-  const ids = new Set();
-  const take = (id, where) => {
-    if (!id) errors.push(`${where}: missing id`);
-    else if (ids.has(id)) errors.push(`${where}: duplicate id ${id}`);
-    else ids.add(id);
-  };
+  const seenGlobalMoves = new Set();
 
-  take(PLAYER_DEF.id, "player");
-  take(PLAYER_DEF.swing.id, "player.swing");
+  function unique(list, where) {
+    const seen = new Set();
+    for (const item of list) {
+      if (!item.id) errors.push(`${where}: missing id`);
+      else if (seen.has(item.id)) errors.push(`${where}: duplicate id ${item.id}`);
+      else seen.add(item.id);
+    }
+  }
+
+  if (!PLAYER_DEF.id) errors.push("player: missing id");
+  if (!PLAYER_DEF.swing.id) errors.push("player.swing: missing id");
+  seenGlobalMoves.add(PLAYER_DEF.swing.id);
+
   for (const def of Object.values(ENEMY_DEFS)) {
-    take(def.id, "enemy");
-    take(def.attack.id, `${def.id}.attack`);
+    if (!def.id) errors.push("enemy: missing id");
+    if (!def.attack?.id) errors.push(`${def.id}: missing attack id`);
+    else if (seenGlobalMoves.has(def.attack.id)) errors.push(`${def.id}: duplicate move ${def.attack.id}`);
+    else seenGlobalMoves.add(def.attack.id);
     if (def.attack.startup + def.attack.active + def.attack.recovery <= 0) {
       errors.push(`${def.id}: attack timing must be positive`);
     }
   }
-  for (const item of Object.values(ITEM_DEFS)) take(item.id, "item");
-  take(ZONE_DEF.id, "zone");
+
+  unique(Object.values(ITEM_DEFS), "item");
+  unique(ZONE_DEF.shrines, "shrine");
+  unique(ZONE_DEF.gates, "gate");
+  unique(ZONE_DEF.pickups, "pickup");
+  unique(ZONE_DEF.spawns, "spawn");
+  unique(ZONE_DEF.collisions, "collision");
+  unique(ZONE_DEF.landmarks, "landmark");
+  unique(ZONE_DEF.lights, "light");
+
+  const shrineIds = new Set(ZONE_DEF.shrines.map((s) => s.id));
+  for (const shrine of ZONE_DEF.shrines) {
+    if (!["checkpoint", "win"].includes(shrine.role)) errors.push(`shrine ${shrine.id}: bad role`);
+  }
+  for (const gate of ZONE_DEF.gates) {
+    if (!shrineIds.has(gate.opensOn)) errors.push(`gate ${gate.id}: unknown opensOn ${gate.opensOn}`);
+  }
   for (const p of ZONE_DEF.pickups) {
-    take(p.id, "pickup");
     if (!ITEM_DEFS[p.defId]) errors.push(`pickup ${p.id}: unknown def ${p.defId}`);
-    if (Math.abs(PLANE_Y) > 0) errors.push("gameplay plane must stay at y=0");
   }
   for (const s of ZONE_DEF.spawns) {
-    take(s.id, "spawn");
     if (!ENEMY_DEFS[s.defId]) errors.push(`spawn ${s.id}: unknown def ${s.defId}`);
   }
-  for (const c of ZONE_DEF.collisions) take(c.id, "collision");
-  for (const l of ZONE_DEF.landmarks) take(l.id, "landmark");
   for (const light of ZONE_DEF.lights) {
-    take(light.id, "light");
     if (!light.emitterId) errors.push(`light ${light.id}: missing emitter`);
   }
+  if (Math.abs(PLANE_Y) > 0) errors.push("gameplay plane must stay at y=0");
 
   const swing = PLAYER_DEF.swing;
   if (swing.startup <= 0 || swing.active <= 0 || swing.recovery <= 0) {

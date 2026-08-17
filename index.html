@@ -41,17 +41,24 @@
     </div>
 
     <section class="banner" data-banner>
-      <p class="kicker">A lantern-road vertical slice</p>
+      <p class="kicker">A lantern-road game</p>
       <h1>Cinderpath</h1>
-      <p>Carry the last lantern down the ash road. Reach the wayshrine before the wick dies.</p>
-      <small>Enter or click to walk</small>
+      <p>Carry the last lantern down the ash road. Light the wayshrine, then the hearth, before the wick dies.</p>
+      <small>Enter or tap to walk</small>
       <ul class="help">
         <li><kbd>WASD</kbd> move</li>
-        <li><kbd>Space</kbd> / click swing</li>
+        <li><kbd>Space</kbd> / tap swing</li>
         <li><kbd>Esc</kbd> pause</li>
         <li><kbd>R</kbd> restart</li>
       </ul>
     </section>
+
+    <div class="touch" data-touch hidden>
+      <div class="stick" data-stick aria-label="Move">
+        <i data-stick-knob></i>
+      </div>
+      <button type="button" class="swing" data-swing>Swing</button>
+    </div>
 
     <pre class="debug" data-debug hidden></pre>
 

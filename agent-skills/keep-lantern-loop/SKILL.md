@@ -19,8 +19,10 @@ Fuel is health, light, and the clock. Do not add a second survival meter until t
 | Idle walk | -1.35 / s |
 | Lantern arc | -4 |
 | Wight contact | -13 |
+| Snuffer contact | -18 |
 | Cinder pickup | +28 |
 | Wight kill | +10 |
+| Snuffer kill | +16 |
 | Empty wick | lose |
 
 Cap at `PLAYER_DEF.maxFuel`. Pickups and kills are atomic: one grant, then the source is spent.

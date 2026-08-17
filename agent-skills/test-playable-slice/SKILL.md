@@ -22,7 +22,10 @@ Fixtures (do not grind to reach them):
 | --- | --- |
 | `?fixture=combat` | First wight in range |
 | `?fixture=lowfuel` | Wick almost dead |
-| `?fixture=shrine` | Last meters of the road |
+| `?fixture=shrine` | Last meters of the first shrine |
+| `?fixture=gate` | Closed ash gate |
+| `?fixture=snuffer` | Second road, snuffer keep-range |
+| `?fixture=hearth` | Last meters of the ember hearth |
 | `?seed=7` | Deterministic layout |
 | `?debug=1` | Live snapshot |
 
