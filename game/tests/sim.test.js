@@ -205,6 +205,30 @@ test("blocker occupies the road", () => {
   assert.ok(state.player.x < blocker.x - 0.6, `blocker must stop a walk-through, x=${state.player.x}`);
 });
 
+test("hit events name the move that landed", () => {
+  const state = playable("blocker");
+  const blocker = state.enemies.find((e) => e.defId === "ash_blocker");
+  blocker.x = state.player.x + 1.0;
+  blocker.z = state.player.z;
+  blocker.aggro = true;
+  flush(state, emptyInput(), 0.7);
+  const enemyHit = state.events.find((e) => e.type === "hit" && e.source !== "player");
+  assert.ok(enemyHit, "blocker contact must emit a hit event");
+  assert.equal(enemyHit.moveId, "shoulder_slam", "enemy hits must carry the move id");
+
+  flush(state, emptyInput(), 0.4);
+  const wight = state.enemies.find((e) => e.defId === "ash_wight");
+  wight.x = state.player.x + 1.1;
+  wight.z = state.player.z;
+  state.player.facingX = 1;
+  state.player.facingZ = 0;
+  step(state, { ...emptyInput(), attack: true }, 1 / 60);
+  flush(state, emptyInput(), 0.3);
+  const playerHit = state.events.find((e) => e.type === "hit" && e.source === "player");
+  assert.ok(playerHit, "player contact must emit a hit event");
+  assert.equal(playerHit.moveId, "lantern_arc", "player hits must carry the move id");
+});
+
 test("blocker slams with a telegraph", () => {
   const state = playable("blocker");
   const blocker = state.enemies.find((e) => e.defId === "ash_blocker");

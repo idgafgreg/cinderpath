@@ -60,6 +60,7 @@ Load the narrowest matching file before editing the game:
 catalog.js   immutable content (player, enemies, zone, fixtures)
 sim.js       deterministic runtime (stances, contact, win/lose)
 input.js     edge-triggered commands
+audio.js     quiet synthesized mix driven by sim events
 render.js    honest low-poly placeholders driven by sim events
 ```
 
@@ -69,8 +70,8 @@ Combat is a state machine. Hits come from wedge contact during an `active` windo
 
 Only after this road stays green:
 
-1. A quieter mix: distinct slam / spit / oil / grit / flare / ring cues
-2. A telegraph ring that dims the moment the active window opens
+1. A telegraph ring that dims the moment the active window opens
+2. A sound toggle (M) with a persisted preference
 
 ## License
 

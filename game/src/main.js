@@ -1,4 +1,5 @@
 import { PLAYER_DEF, ZONE_DEF } from "../content/catalog.js";
+import { createAudio, cuesFor } from "./audio.js";
 import { createInput } from "./input.js";
 import { clearSave, loadGhost, loadSave, writeCheckpoint, writeGhost } from "./persist.js";
 import { createRenderer } from "./render.js";
@@ -27,6 +28,10 @@ const hud = {
 
 const input = createInput();
 const view = createRenderer(canvas);
+const audioCtx = typeof window.AudioContext !== "undefined" ? new window.AudioContext() : null;
+const audio = createAudio({ ctx: audioCtx });
+window.addEventListener("pointerdown", () => audio.unlock(), { once: true });
+window.addEventListener("keydown", () => audio.unlock(), { once: true });
 let checkpoint = fixture ? null : loadSave();
 const lastGhost = fixture ? null : loadGhost();
 let state = createGame({ seed, fixture: fixture || null, save: checkpoint, ghost: lastGhost });
@@ -115,6 +120,7 @@ function paint(events) {
 
   view.sync(state, events);
   view.render();
+  audio.play(cuesFor(events));
 }
 
 function frame(now) {

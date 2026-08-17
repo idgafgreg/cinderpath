@@ -533,6 +533,7 @@ function resolveContact(state, attacker, target, move, kind) {
       source: "player",
       actionId: attacker.actionId,
       targetId: target.id,
+      moveId: move.id,
       damage: move.damage,
       t: state.time,
     });
@@ -567,6 +568,7 @@ function resolveContact(state, attacker, target, move, kind) {
     source: attacker.id,
     actionId: attacker.actionId,
     targetId: "player",
+    moveId: move.id,
     damage: move.damage,
     t: state.time,
   });

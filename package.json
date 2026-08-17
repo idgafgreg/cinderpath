@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Keep the last lantern alive on the ash road.",
   "scripts": {
-    "test": "node --test game/tests/sim.test.js game/tests/persist.test.js && node game/tests/fixture-walk.mjs",
+    "test": "node --test game/tests/sim.test.js game/tests/persist.test.js game/tests/audio.test.js && node game/tests/fixture-walk.mjs",
     "start": "npx --yes serve -l 4173 ."
   }
 }
