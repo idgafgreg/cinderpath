@@ -139,7 +139,7 @@ export function createRenderer(canvas) {
           ring.position.set(tel.x, 0.045, tel.z);
           ring.scale.set(scale, scale, 1);
           ring.material.color.setHex(tel.color === "ice" ? COLORS.ice : COLORS.ember);
-          ring.material.opacity = 0.22 + tel.progress * 0.5;
+          ring.material.opacity = 0.22 + tel.progress * 0.5 + tel.flash * 0.5;
           const theta = Math.atan2(-tel.facingZ, tel.facingX);
           const half = Math.max(0.12, tel.halfAngle);
           const inner = 0.86 - tel.tighten * 0.7;

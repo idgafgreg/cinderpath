@@ -44,7 +44,7 @@ Lighting a shrine writes `cinderpath-save-v1`. Death keeps that save. R wipes th
 - A successful walk leaves a translucent ghost on the next run
 - Past the gate, ashnight thickens fog and fills the lantern cone with drifting ash motes
 - A swing flare lights those motes only during the active window
-- Enemy startup draws a ground ring: ember for lunge/slam, ice for snuff spit. The ring is a wedge that faces the enemy, spans the attack's half-angle, and tightens inward as the startup clock nears contact.
+- Enemy startup draws a ground ring: ember for lunge/slam, ice for snuff spit. The ring is a wedge that faces the enemy, spans the attack's half-angle, tightens inward as the startup clock nears contact, and flashes brighter in the final beat.
 - Gate bar vanishes when the wayshrine is lit
 - Touch: left stick, right swing, safe-area padding
 

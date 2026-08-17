@@ -371,3 +371,18 @@ test("telegraph wedge tightens inward as startup nears contact", () => {
   assert.ok(late.tighten > 0.8);
   assert.equal(state.player.hp, undefined);
 });
+
+test("telegraph wedge flashes in the final startup beat", () => {
+  const state = playable("snuffer");
+  const snuffer = state.enemies.find((e) => e.defId === "ash_snuffer");
+  snuffer.stance = STANCE.STARTUP;
+  snuffer.facingX = 1;
+  snuffer.facingZ = 0;
+  snuffer.phaseT = ENEMY_DEFS.ash_snuffer.attack.startup * 0.5;
+  const mid = telegraphFor(snuffer);
+  snuffer.phaseT = ENEMY_DEFS.ash_snuffer.attack.startup * 0.95;
+  const late = telegraphFor(snuffer);
+  assert.equal(mid.flash, 0);
+  assert.ok(late.flash > 0.5, "final beat must pop brighter");
+  assert.equal(state.player.hp, undefined);
+});
