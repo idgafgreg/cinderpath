@@ -45,7 +45,7 @@ Lighting a shrine writes `cinderpath-save-v1`. Death keeps that save. R wipes th
 - Past the gate, ashnight thickens fog and fills the lantern cone with drifting ash motes
 - A swing flare lights those motes only during the active window
 - Enemy startup draws a ground ring: ember for lunge/slam, ice for snuff spit. The ring is a wedge that faces the enemy, spans the attack's half-angle, tightens inward as the startup clock nears contact, flashes brighter in the final beat, and cuts out the instant the active window opens.
-- Audio is a quiet synthesized mix with no assets: slam, spit, oil, grit, flare, ring, hit, lunge, kill, pickup, shrine, win, lose, wave, denied. It plays sim events only — it never invents hits, pickups, or fuel. M toggles it and the choice is remembered (`cinderpath-sound-v1`).
+- Audio is a quiet synthesized mix with no assets: slam, spit, oil, grit, flare, ring, hit, lunge, kill, pickup, shrine, win, lose, wave, denied. It plays sim events only — it never invents hits, pickups, or fuel. M or the sound chip toggles it and the choice is remembered (`cinderpath-sound-v1`).
 - Gate bar vanishes when the wayshrine is lit
 - Touch: left stick, right swing, safe-area padding
 

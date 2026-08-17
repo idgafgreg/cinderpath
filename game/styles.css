@@ -141,10 +141,25 @@ html, body {
   padding: 4px 10px;
   border: 1px solid rgba(243, 234, 216, 0.18);
   border-radius: 999px;
+  background: transparent;
+  font-family: inherit;
   font-size: 11px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--mute);
+  pointer-events: auto;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.sound:hover {
+  border-color: rgba(243, 234, 216, 0.42);
+  color: var(--ink);
+}
+
+.sound:active {
+  transform: translateY(1px);
 }
 
 .sound[data-muted="true"] {

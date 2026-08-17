@@ -16,6 +16,7 @@ export function createInput(root = document) {
   const stickEl = root.querySelector("[data-stick]");
   const knobEl = root.querySelector("[data-stick-knob]");
   const swingEl = root.querySelector("[data-swing]");
+  const soundEl = root.querySelector("[data-sound]");
 
   function syncAxes() {
     let x = stick.x;
@@ -79,7 +80,7 @@ export function createInput(root = document) {
   }
 
   function onPointerDown(event) {
-    if (event.target.closest?.("[data-touch]")) return;
+    if (event.target.closest?.("[data-touch], [data-sound]")) return;
     if (event.button === 0) {
       state.attack = true;
       state.start = true;
@@ -134,6 +135,11 @@ export function createInput(root = document) {
     state.start = true;
   }
 
+  function onSound(event) {
+    event.preventDefault();
+    state.mute = true;
+  }
+
   window.addEventListener("keydown", onKeyDown);
   window.addEventListener("keyup", onKeyUp);
   window.addEventListener("pointerdown", onPointerDown);
@@ -147,6 +153,7 @@ export function createInput(root = document) {
   stickEl?.addEventListener("pointerup", clearStick);
   stickEl?.addEventListener("pointercancel", clearStick);
   swingEl?.addEventListener("pointerdown", onSwing);
+  soundEl?.addEventListener("pointerdown", onSound);
 
   return {
     sample() {

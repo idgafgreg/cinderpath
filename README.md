@@ -29,7 +29,7 @@ Review states:
 - `/?fixture=oil`
 - `/?debug=1&seed=7`
 
-Controls: **WASD** move · **Space / click** swing · **Esc** pause · **R** restart · **M** sound on/off (remembered)
+Controls: **WASD** move · **Space / click** swing · **Esc** pause · **R** restart · **M / sound chip** sound on/off (remembered)
 
 ## Why this repo exists
 
