@@ -79,6 +79,32 @@ export const ENEMY_DEFS = Object.freeze({
     }),
     rewards: Object.freeze({ cinders: 16 }),
   }),
+  ash_blocker: Object.freeze({
+    id: "ash_blocker",
+    displayName: "Ash Blocker",
+    role: "blocker",
+    occupy: true,
+    radius: 0.85,
+    height: 1.55,
+    speed: 0.55,
+    maxHp: 140,
+    aggroRange: 5.2,
+    disengageRange: 8,
+    attackRange: 1.15,
+    repathInterval: 0.25,
+    attack: Object.freeze({
+      id: "shoulder_slam",
+      startup: 0.48,
+      active: 0.18,
+      recovery: 0.95,
+      range: 1.2,
+      halfAngle: 0.8,
+      damage: 16,
+      knockback: 1.4,
+      minCommit: 0.48,
+    }),
+    rewards: Object.freeze({ cinders: 12 }),
+  }),
 });
 
 export const ITEM_DEFS = Object.freeze({
@@ -87,6 +113,20 @@ export const ITEM_DEFS = Object.freeze({
     displayName: "Cinder",
     radius: 0.28,
     fuel: 28,
+  }),
+  bright_oil: Object.freeze({
+    id: "bright_oil",
+    displayName: "Bright Oil",
+    radius: 0.3,
+    fuel: 0,
+    upgrade: "brightOil",
+  }),
+});
+
+export const UPGRADE_DEFS = Object.freeze({
+  brightOil: Object.freeze({
+    rangeBonus: 0.5,
+    drainScale: 0.62,
   }),
 });
 
@@ -131,10 +171,12 @@ export const ZONE_DEF = Object.freeze({
     Object.freeze({ id: "cinder_c", defId: "cinder", x: 24.6, z: 1.1 }),
     Object.freeze({ id: "cinder_d", defId: "cinder", x: 39.2, z: -1.2 }),
     Object.freeze({ id: "cinder_e", defId: "cinder", x: 54.6, z: 1.4 }),
+    Object.freeze({ id: "oil_a", defId: "bright_oil", x: 35.4, z: 1.15 }),
   ]),
   spawns: Object.freeze([
     Object.freeze({ id: "wight_a", defId: "ash_wight", x: 9.2, z: -0.6 }),
     Object.freeze({ id: "wight_b", defId: "ash_wight", x: 21.4, z: 0.8 }),
+    Object.freeze({ id: "blocker_a", defId: "ash_blocker", x: 40.1, z: 0 }),
     Object.freeze({ id: "snuffer_a", defId: "ash_snuffer", x: 48.2, z: 0.5 }),
   ]),
   lights: Object.freeze([
@@ -194,6 +236,16 @@ export const FIXTURES = Object.freeze({
     player: Object.freeze({ x: 60.2, z: 0, fuel: 42 }),
     litShrines: Object.freeze(["wayshrine"]),
     note: "Last steps to the ember hearth.",
+  }),
+  blocker: Object.freeze({
+    player: Object.freeze({ x: 38.2, z: 0, fuel: 64 }),
+    litShrines: Object.freeze(["wayshrine"]),
+    note: "Second road, facing the ash blocker.",
+  }),
+  oil: Object.freeze({
+    player: Object.freeze({ x: 34.6, z: 1.15, fuel: 58 }),
+    litShrines: Object.freeze(["wayshrine"]),
+    note: "Next to the bright-oil vial.",
   }),
 });
 

@@ -26,6 +26,8 @@ Fixtures (do not grind to reach them):
 | `?fixture=gate` | Closed ash gate |
 | `?fixture=snuffer` | Second road, snuffer keep-range |
 | `?fixture=hearth` | Last meters of the ember hearth |
+| `?fixture=blocker` | Occupying ash blocker |
+| `?fixture=oil` | Bright-oil vial |
 | `?seed=7` | Deterministic layout |
 | `?debug=1` | Live snapshot |
 

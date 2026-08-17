@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { ENEMY_DEFS, PLAYER_DEF, validateCatalog } from "../content/catalog.js";
-import { PHASE, STANCE, createGame, emptyInput, serializeSave, step } from "../src/sim.js";
+import { PHASE, STANCE, createGame, emptyInput, serializeGhost, serializeSave, step, swingFor } from "../src/sim.js";
 
 function flush(state, input, seconds, hz = 60) {
   const dt = 1 / hz;
@@ -191,4 +191,68 @@ test("enemy lunge telegraphs before contact", () => {
   const events = flush(state, emptyInput(), 0.2);
   assert.ok(events.some((e) => e.type === "enemy_telegraph"));
   assert.notEqual(state.player.fuel, PLAYER_DEF.maxFuel);
+});
+
+test("blocker occupies the road", () => {
+  const state = playable("blocker");
+  const blocker = state.enemies.find((e) => e.defId === "ash_blocker");
+  assert.ok(blocker, "catalog must spawn an ash_blocker");
+  blocker.x = 40;
+  blocker.z = 0;
+  state.player.x = 38.4;
+  state.player.z = 0;
+  flush(state, { ...emptyInput(), x: 1 }, 1.0);
+  assert.ok(state.player.x < blocker.x - 0.6, `blocker must stop a walk-through, x=${state.player.x}`);
+});
+
+test("blocker slams with a telegraph", () => {
+  const state = playable("blocker");
+  const blocker = state.enemies.find((e) => e.defId === "ash_blocker");
+  blocker.x = state.player.x + 1.0;
+  blocker.z = state.player.z;
+  blocker.aggro = true;
+  const events = flush(state, emptyInput(), 0.3);
+  assert.ok(events.some((e) => e.type === "enemy_telegraph" && e.moveId === "shoulder_slam"));
+});
+
+test("bright oil lengthens the arc without a second meter", () => {
+  const state = playable("oil");
+  const oil = state.pickups.find((p) => p.defId === "bright_oil");
+  assert.ok(oil);
+  const beforeRange = swingFor(state).range;
+  state.player.x = oil.x;
+  state.player.z = oil.z;
+  const fuelBefore = state.player.fuel;
+  const events = step(state, emptyInput(), 1 / 60);
+  assert.ok(events.some((e) => e.type === "upgrade" && e.id === "bright_oil"));
+  assert.equal(state.upgrades.brightOil, true);
+  assert.ok(swingFor(state).range > beforeRange);
+  assert.equal(PLAYER_DEF.maxFuel, 100);
+  assert.ok(state.player.fuel <= fuelBefore, "oil is not a heal and not a second bar");
+  assert.equal(typeof state.player.fuel, "number");
+  assert.equal(state.player.ward, undefined);
+  assert.equal(state.player.hp, undefined);
+});
+
+test("ghost replays a winning walk and never deals damage", () => {
+  const recorded = playable("combat");
+  for (const enemy of recorded.enemies) {
+    enemy.hp = 0;
+    enemy.stance = STANCE.DEAD;
+  }
+  flush(recorded, { ...emptyInput(), x: 1 }, 0.8);
+  const ghostBlob = serializeGhost(recorded);
+  assert.ok(ghostBlob.samples.length > 3);
+  const replay = createGame({ seed: 7, fixture: "combat", ghost: ghostBlob });
+  replay.phase = PHASE.PLAY;
+  for (const enemy of replay.enemies) {
+    enemy.hp = 0;
+    enemy.stance = STANCE.DEAD;
+  }
+  const fuel = replay.player.fuel;
+  flush(replay, emptyInput(), 0.8);
+  assert.ok(replay.ghost);
+  assert.ok(replay.ghost.x > recorded.player.x - 6);
+  assert.ok(replay.player.fuel > fuel - 8, "ghost must not hit the living wickwarden");
+  assert.equal(replay.ghost.solid, false);
 });

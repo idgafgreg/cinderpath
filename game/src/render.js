@@ -13,6 +13,7 @@ const COLORS = {
   wight: 0x6b737c,
   wightEye: 0xc45a3a,
   snuffer: 0x4d5a66,
+  blocker: 0x3a322c,
   shrine: 0xe8e0d4,
   pickup: 0xffb347,
   telegraph: 0xff6a3d,
@@ -53,9 +54,11 @@ export function createRenderer(canvas) {
 
   const world = buildWorld(root);
   const playerMesh = buildPlayer();
+  const ghostMesh = buildPlayer({ ghost: true });
+  ghostMesh.visible = false;
   const enemyMeshes = new Map();
   const pickupMeshes = new Map();
-  root.add(playerMesh);
+  root.add(playerMesh, ghostMesh);
 
   const flash = new THREE.Mesh(
     new THREE.CircleGeometry(1.5, 20),
@@ -93,7 +96,7 @@ export function createRenderer(canvas) {
       for (const enemy of state.enemies) {
         let mesh = enemyMeshes.get(enemy.id);
         if (!mesh) {
-          mesh = enemy.defId === "ash_snuffer" ? buildSnuffer() : buildWight();
+          mesh = enemy.defId === "ash_snuffer" ? buildSnuffer() : enemy.defId === "ash_blocker" ? buildBlocker() : buildWight();
           enemyMeshes.set(enemy.id, mesh);
           root.add(mesh);
         }
@@ -103,7 +106,8 @@ export function createRenderer(canvas) {
         const cloak = mesh.getObjectByName("cloak");
         if (cloak) {
           const telegraph = enemy.stance === STANCE.STARTUP;
-          const rest = enemy.defId === "ash_snuffer" ? COLORS.snuffer : COLORS.wight;
+          const rest =
+            enemy.defId === "ash_snuffer" ? COLORS.snuffer : enemy.defId === "ash_blocker" ? COLORS.blocker : COLORS.wight;
           cloak.material.color.setHex(telegraph ? COLORS.telegraph : rest);
           cloak.material.emissive.setHex(telegraph ? COLORS.telegraph : 0x000000);
           cloak.material.emissiveIntensity = telegraph ? 0.7 : 0;
@@ -113,7 +117,7 @@ export function createRenderer(canvas) {
       for (const pickup of state.pickups) {
         let mesh = pickupMeshes.get(pickup.id);
         if (!mesh) {
-          mesh = buildCinder();
+          mesh = pickup.defId === "bright_oil" ? buildOil() : buildCinder();
           pickupMeshes.set(pickup.id, mesh);
           root.add(mesh);
           mesh.position.set(pickup.x, 0.35, pickup.z);
@@ -121,6 +125,14 @@ export function createRenderer(canvas) {
         mesh.visible = !pickup.taken;
         mesh.rotation.y = state.time * 1.6;
         mesh.position.y = 0.35 + Math.sin(state.time * 3 + pickup.x) * 0.08;
+      }
+
+      if (state.ghost) {
+        ghostMesh.visible = true;
+        ghostMesh.position.set(state.ghost.x, 0, state.ghost.z);
+        ghostMesh.rotation.y = Math.atan2(state.ghost.facingX || 1, state.ghost.facingZ || 0);
+      } else {
+        ghostMesh.visible = false;
       }
 
       const gateOpen = state.litShrines.includes("wayshrine");
@@ -235,20 +247,27 @@ function buildShrine(def, stone, flameColor) {
   return shrine;
 }
 
-function buildPlayer() {
+function buildPlayer({ ghost = false } = {}) {
+  const opacity = ghost ? 0.32 : 1;
   const g = new THREE.Group();
-  const legs = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 0.7, 8), mat(0x2b2118));
+  const extra = ghost ? { transparent: true, opacity, depthWrite: false } : {};
+  const legs = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 0.7, 8), mat(ghost ? 0x9aa7b4 : 0x2b2118, extra));
   legs.position.y = 0.35;
-  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.28, 0.8, 8), mat(COLORS.cloak));
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.28, 0.8, 8), mat(ghost ? 0x7d8b99 : COLORS.cloak, extra));
   body.position.y = 1.0;
   body.name = "body";
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.18, 10, 10), mat(COLORS.player));
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.18, 10, 10), mat(ghost ? 0xc5d0dc : COLORS.player, extra));
   head.position.y = 1.55;
-  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.15, 6), mat(0x6a5134));
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.15, 6), mat(0x6a5134, extra));
   pole.position.set(0.28, 1.15, 0.12);
   const lamp = new THREE.Mesh(
     new THREE.SphereGeometry(0.13, 10, 10),
-    new THREE.MeshStandardMaterial({ color: COLORS.lantern, emissive: COLORS.lantern, emissiveIntensity: 1.1 }),
+    new THREE.MeshStandardMaterial({
+      color: COLORS.lantern,
+      emissive: COLORS.lantern,
+      emissiveIntensity: ghost ? 0.35 : 1.1,
+      ...extra,
+    }),
   );
   lamp.position.set(0.28, 1.75, 0.12);
   g.add(legs, body, head, pole, lamp);
@@ -292,4 +311,26 @@ function buildCinder() {
     new THREE.OctahedronGeometry(0.18),
     new THREE.MeshStandardMaterial({ color: COLORS.pickup, emissive: COLORS.ember, emissiveIntensity: 0.85 }),
   );
+}
+
+function buildOil() {
+  const g = new THREE.Group();
+  const vial = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.09, 0.11, 0.34, 8),
+    new THREE.MeshStandardMaterial({ color: 0xf3c969, emissive: 0xe07a3d, emissiveIntensity: 0.7 }),
+  );
+  vial.position.y = 0.18;
+  g.add(vial);
+  return g;
+}
+
+function buildBlocker() {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.82, 0.9, 1.35, 7), mat(COLORS.blocker));
+  body.position.y = 0.68;
+  body.name = "cloak";
+  const brow = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.16, 0.22), mat(0x2a241e));
+  brow.position.set(0, 1.22, 0.55);
+  g.add(body, brow);
+  return g;
 }

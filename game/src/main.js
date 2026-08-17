@@ -1,6 +1,6 @@
 import { PLAYER_DEF, ZONE_DEF } from "../content/catalog.js";
 import { createInput } from "./input.js";
-import { clearSave, loadSave, writeCheckpoint } from "./persist.js";
+import { clearSave, loadGhost, loadSave, writeCheckpoint, writeGhost } from "./persist.js";
 import { createRenderer } from "./render.js";
 import { PHASE, createGame, snapshot, step } from "./sim.js";
 
@@ -18,12 +18,14 @@ const hud = {
   banner: document.querySelector("[data-banner]"),
   stats: document.querySelector("[data-stats]"),
   debug: document.querySelector("[data-debug]"),
+  oil: document.querySelector("[data-oil]"),
 };
 
 const input = createInput();
 const view = createRenderer(canvas);
 const checkpoint = fixture ? null : loadSave();
-let state = createGame({ seed, fixture: fixture || null, save: checkpoint });
+const lastGhost = fixture ? null : loadGhost();
+let state = createGame({ seed, fixture: fixture || null, save: checkpoint, ghost: lastGhost });
 if (fixture) state.phase = PHASE.PLAY;
 
 let last = performance.now();
@@ -71,6 +73,7 @@ function paint(events) {
   hud.fuel.textContent = `${Math.ceil(state.player.fuel)}`;
   hud.fuelFill.style.transform = `scaleX(${fuelPct})`;
   hud.fuelFill.dataset.low = fuelPct < 0.28 ? "true" : "false";
+  if (hud.oil) hud.oil.hidden = !state.upgrades?.brightOil;
   hud.phase.textContent = state.phase;
 
   hud.objective.textContent = state.phase === PHASE.PLAY ? nextObjective() : "Keep the lantern alive";
@@ -97,11 +100,17 @@ function frame(now) {
   const dt = Math.min(0.033, (now - last) / 1000);
   last = now;
   const commands = input.sample();
-  if (commands.restart && !fixture) clearSave();
+  if (commands.restart && !fixture) {
+    clearSave();
+    state = createGame({ seed, ghost: loadGhost() });
+    paint([]);
+    requestAnimationFrame(frame);
+    return;
+  }
   if (state.phase === PHASE.LOSE && commands.start && !fixture) {
     const saved = loadSave();
     if (saved) {
-      state = createGame({ seed: saved.seed || seed, save: saved });
+      state = createGame({ seed: saved.seed || seed, save: saved, ghost: loadGhost() });
       state.phase = PHASE.PLAY;
       paint([]);
       requestAnimationFrame(frame);
@@ -111,6 +120,9 @@ function frame(now) {
   const events = step(state, commands, dt);
   if (events.some((event) => event.type === "shrine_lit") && !fixture) {
     writeCheckpoint(state);
+  }
+  if (events.some((event) => event.type === "win") && !fixture) {
+    writeGhost(state);
   }
   paint(events);
   requestAnimationFrame(frame);

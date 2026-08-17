@@ -25,6 +25,8 @@ Review states:
 - `/?fixture=gate`
 - `/?fixture=snuffer`
 - `/?fixture=hearth`
+- `/?fixture=blocker`
+- `/?fixture=oil`
 - `/?debug=1&seed=7`
 
 Controls: **WASD** move · **Space / click** swing · **Esc** pause · **R** restart
@@ -35,7 +37,7 @@ Controls: **WASD** move · **Space / click** swing · **Esc** pause · **R** res
 
 Nothing in `agent-skills/` is a copy of Meng To's files. The methods are adapted. The fiction, catalog, and simulation are original.
 
-This is not Hollowmere and not SPACE-FACTORY. It is a small, shippable road.
+This is not Hollowmere. Cinderpath has no farm, parish, villagers, or Unity pipeline — different fiction, different repo, different game.
 
 ## Skills
 
@@ -67,10 +69,10 @@ Combat is a state machine. Hits come from wedge contact during an `active` windo
 
 Only after this road stays green:
 
-1. A third role (blocker) or a night-weather modifier
-2. A wick upgrade that does not become a second life meter
-3. Authored encounter waves on the second road
-4. A recorded ghost of your last successful walk
+1. A night-weather modifier that changes readability, not meters
+2. Authored encounter waves on the second road
+3. A short directed ending after the hearth
+4. A quieter mix: distinct slam / spit / oil cues
 
 ## License
 

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { PHASE, createGame, emptyInput, step } from "../src/sim.js";
-import { SAVE_KEY, clearSave, loadSave, writeCheckpoint } from "../src/persist.js";
+import { GHOST_KEY, SAVE_KEY, clearSave, loadGhost, loadSave, writeCheckpoint, writeGhost } from "../src/persist.js";
 
 function memoryStorage(start = {}) {
   const data = { ...start };
@@ -36,4 +36,20 @@ test("clearSave drops a bad or missing blob safely", () => {
   assert.equal(loadSave(storage), null);
   clearSave(storage);
   assert.equal(loadSave(storage), null);
+});
+
+test("a winning ghost survives clearing the checkpoint", () => {
+  const storage = memoryStorage();
+  const state = createGame({ seed: 3, fixture: "combat" });
+  state.phase = PHASE.PLAY;
+  step(state, { ...emptyInput(), x: 1 }, 1 / 60);
+  step(state, { ...emptyInput(), x: 1 }, 1 / 60);
+  writeGhost(state, storage);
+  writeCheckpoint(state, storage);
+  clearSave(storage);
+  assert.equal(loadSave(storage), null);
+  const ghost = loadGhost(storage);
+  assert.ok(ghost);
+  assert.ok(storage.getItem(GHOST_KEY));
+  assert.ok(ghost.samples.length >= 1);
 });

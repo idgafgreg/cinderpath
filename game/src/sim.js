@@ -3,6 +3,7 @@ import {
   FIXTURES,
   ITEM_DEFS,
   PLAYER_DEF,
+  UPGRADE_DEFS,
   ZONE_DEF,
   validateCatalog,
 } from "../content/catalog.js";
@@ -26,6 +27,18 @@ export const STANCE = Object.freeze({
 });
 
 const MAX_DT = 1 / 30;
+const TRAIL_DT = 0.1;
+
+export function swingFor(state) {
+  const swing = { ...PLAYER_DEF.swing };
+  if (state.upgrades?.brightOil) swing.range += UPGRADE_DEFS.brightOil.rangeBonus;
+  return swing;
+}
+
+export function drainFor(state) {
+  const scale = state.upgrades?.brightOil ? UPGRADE_DEFS.brightOil.drainScale : 1;
+  return PLAYER_DEF.fuelDrainPerSecond * scale;
+}
 
 export function mulberry32(seed) {
   let a = seed >>> 0;
@@ -102,6 +115,31 @@ function resolveWorld(state, x, z, r) {
   };
 }
 
+function separateFromOccupiers(state, x, z, r) {
+  let nx = x;
+  let nz = z;
+  for (const enemy of state.enemies) {
+    if (enemy.stance === STANCE.DEAD) continue;
+    const def = ENEMY_DEFS[enemy.defId];
+    if (!def.occupy) continue;
+    const dx = nx - enemy.x;
+    const dz = nz - enemy.z;
+    const dist = Math.hypot(dx, dz);
+    const min = r + def.radius;
+    if (dist < min) {
+      if (dist < 1e-5) {
+        nx = enemy.x - min;
+        nz = enemy.z;
+      } else {
+        const n = normalize(dx, dz);
+        nx = enemy.x + n.x * min;
+        nz = enemy.z + n.z * min;
+      }
+    }
+  }
+  return resolveWorld(state, nx, nz, r);
+}
+
 function inWedge(ax, az, facingX, facingZ, tx, tz, range, halfAngle) {
   const dx = tx - ax;
   const dz = tz - az;
@@ -131,7 +169,7 @@ function applyFixture(state, fixtureName) {
   state.fixture = fixtureName;
 }
 
-export function createGame({ seed = 1, fixture = null, save = null } = {}) {
+export function createGame({ seed = 1, fixture = null, save = null, ghost = null } = {}) {
   const catalogErrors = validateCatalog();
   if (catalogErrors.length) {
     throw new Error(`Catalog invalid:\n- ${catalogErrors.join("\n- ")}`);
@@ -146,6 +184,10 @@ export function createGame({ seed = 1, fixture = null, save = null } = {}) {
     actionSeq: 0,
     events: [],
     litShrines: [],
+    upgrades: { brightOil: false },
+    trail: [],
+    trailAcc: 0,
+    ghost: null,
     player: {
       id: "player",
       defId: PLAYER_DEF.id,
@@ -195,6 +237,7 @@ export function createGame({ seed = 1, fixture = null, save = null } = {}) {
   };
 
   if (save) applySave(state, save);
+  if (ghost) applyGhost(state, ghost);
   if (fixture) applyFixture(state, fixture);
   return state;
 }
@@ -212,6 +255,7 @@ export function serializeSave(state) {
     litShrines: [...state.litShrines],
     pickupsTaken: state.pickups.filter((p) => p.taken).map((p) => p.id),
     enemiesDead: state.enemies.filter((e) => e.stance === STANCE.DEAD).map((e) => e.id),
+    upgrades: { ...state.upgrades },
     stats: { ...state.stats },
   };
 }
@@ -237,6 +281,34 @@ export function applySave(state, save) {
     }
   }
   if (save.stats) state.stats = { ...state.stats, ...save.stats };
+  if (save.upgrades) state.upgrades = { ...state.upgrades, ...save.upgrades };
+  return state;
+}
+
+export function serializeGhost(state) {
+  return {
+    v: 1,
+    samples: (state.trail || []).map((s) => ({
+      t: Number(s.t.toFixed(3)),
+      x: Number(s.x.toFixed(3)),
+      z: Number(s.z.toFixed(3)),
+      facingX: Number(s.facingX.toFixed(3)),
+      facingZ: Number(s.facingZ.toFixed(3)),
+    })),
+  };
+}
+
+export function applyGhost(state, blob) {
+  if (!blob || blob.v !== 1 || !blob.samples?.length) return state;
+  const first = blob.samples[0];
+  state.ghost = {
+    samples: blob.samples,
+    x: first.x,
+    z: first.z,
+    facingX: first.facingX,
+    facingZ: first.facingZ,
+    solid: false,
+  };
   return state;
 }
 
@@ -366,7 +438,7 @@ function stepPlayer(state, input, dt) {
 
   if (p.stance === STANCE.STARTUP || p.stance === STANCE.ACTIVE || p.stance === STANCE.RECOVERY) {
     p.phaseT += dt;
-    const swing = PLAYER_DEF.swing;
+    const swing = swingFor(state);
     if (p.stance === STANCE.STARTUP && p.phaseT >= swing.startup) {
       p.stance = STANCE.ACTIVE;
       p.phaseT -= swing.startup;
@@ -392,8 +464,9 @@ function stepPlayer(state, input, dt) {
   if (move.x || move.z) {
     p.stance = STANCE.MOVE;
     const next = resolveWorld(state, p.x + move.x * PLAYER_DEF.speed * dt, p.z + move.z * PLAYER_DEF.speed * dt, PLAYER_DEF.radius);
-    p.x = next.x;
-    p.z = next.z;
+    const separated = separateFromOccupiers(state, next.x, next.z, PLAYER_DEF.radius);
+    p.x = separated.x;
+    p.z = separated.z;
   } else {
     p.stance = STANCE.IDLE;
   }
@@ -456,6 +529,15 @@ function stepEnemy(state, enemy, dt) {
   enemy.facingX = n.x;
   enemy.facingZ = n.z;
 
+  if (def.occupy) {
+    if (dist <= def.attackRange && p.stance !== STANCE.DEAD) {
+      beginEnemyAttack(state, enemy);
+      return;
+    }
+    enemy.stance = STANCE.IDLE;
+    return;
+  }
+
   if (def.keepRange && dist < def.keepRange.min) {
     const back = resolveWorld(state, enemy.x - n.x * def.speed * dt, enemy.z - n.z * def.speed * dt, def.radius);
     enemy.x = back.x;
@@ -486,11 +568,62 @@ function collectPickups(state) {
     const dist = Math.hypot(p.x - pickup.x, p.z - pickup.z);
     if (dist <= PLAYER_DEF.radius + def.radius) {
       pickup.taken = true;
-      p.fuel = clamp(p.fuel + def.fuel, 0, PLAYER_DEF.maxFuel);
-      state.stats.cinders += 1;
-      state.events.push({ type: "pickup", id: pickup.id, fuel: def.fuel, t: state.time });
+      if (def.upgrade) {
+        state.upgrades[def.upgrade] = true;
+        state.events.push({ type: "upgrade", id: def.id, pickupId: pickup.id, t: state.time });
+      }
+      if (def.fuel) {
+        p.fuel = clamp(p.fuel + def.fuel, 0, PLAYER_DEF.maxFuel);
+        state.stats.cinders += 1;
+        state.events.push({ type: "pickup", id: pickup.id, fuel: def.fuel, t: state.time });
+      }
     }
   }
+}
+
+function recordTrail(state, dt) {
+  if (!state.trail) state.trail = [];
+  state.trailAcc = (state.trailAcc || 0) + dt;
+  if (state.trail.length && state.trailAcc < TRAIL_DT) return;
+  state.trailAcc = 0;
+  state.trail.push({
+    t: state.time,
+    x: state.player.x,
+    z: state.player.z,
+    facingX: state.player.facingX,
+    facingZ: state.player.facingZ,
+  });
+}
+
+function stepGhost(state) {
+  if (!state.ghost?.samples?.length) return;
+  const samples = state.ghost.samples;
+  const t = state.time;
+  let pose = samples[0];
+  if (t >= samples[samples.length - 1].t) {
+    pose = samples[samples.length - 1];
+  } else {
+    for (let i = 0; i < samples.length - 1; i += 1) {
+      const a = samples[i];
+      const b = samples[i + 1];
+      if (t >= a.t && t <= b.t) {
+        const span = Math.max(1e-6, b.t - a.t);
+        const u = (t - a.t) / span;
+        pose = {
+          x: a.x + (b.x - a.x) * u,
+          z: a.z + (b.z - a.z) * u,
+          facingX: a.facingX + (b.facingX - a.facingX) * u,
+          facingZ: a.facingZ + (b.facingZ - a.facingZ) * u,
+        };
+        break;
+      }
+    }
+  }
+  state.ghost.x = pose.x;
+  state.ghost.z = pose.z;
+  state.ghost.facingX = pose.facingX;
+  state.ghost.facingZ = pose.facingZ;
+  state.ghost.solid = false;
 }
 
 function checkObjectives(state) {
@@ -544,11 +677,13 @@ export function step(state, input, dt) {
 
   state.time += clamped;
   state.tick += 1;
-  state.player.fuel = Math.max(0, state.player.fuel - PLAYER_DEF.fuelDrainPerSecond * clamped);
+  state.player.fuel = Math.max(0, state.player.fuel - drainFor(state) * clamped);
 
   stepPlayer(state, input, clamped);
   for (const enemy of state.enemies) stepEnemy(state, enemy, clamped);
   collectPickups(state);
+  recordTrail(state, clamped);
+  stepGhost(state);
   checkObjectives(state);
 
   return state.events.slice(eventsBefore);
@@ -573,6 +708,8 @@ export function snapshot(state) {
     })),
     pickupsLeft: state.pickups.filter((p) => !p.taken).length,
     litShrines: [...state.litShrines],
+    upgrades: { ...state.upgrades },
+    ghost: state.ghost ? { x: state.ghost.x, z: state.ghost.z } : null,
     stats: { ...state.stats },
   };
 }

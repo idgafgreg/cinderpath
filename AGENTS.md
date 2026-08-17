@@ -19,6 +19,7 @@ This is a playable isometric web game plus the skills that built it.
 
 ## Hard rules
 
+- Cinderpath is a different game from Hollowmere. No shared fiction, characters, systems, art, or pipeline. Do not import farm, parish, NPC, or Unity conventions.
 - One gameplay plane at y = 0
 - One life resource: lantern fuel
 - Authored objects are frozen; runtime instances are created in `createGame`

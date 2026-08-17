@@ -20,9 +20,12 @@ Fuel is health, light, and the clock. Do not add a second survival meter until t
 | Lantern arc | -4 |
 | Wight contact | -13 |
 | Snuffer contact | -18 |
+| Blocker contact | -16 |
 | Cinder pickup | +28 |
+| Bright oil | 0 fuel; longer arc, slower drain |
 | Wight kill | +10 |
 | Snuffer kill | +16 |
+| Blocker kill | +12 |
 | Empty wick | lose |
 
 Cap at `PLAYER_DEF.maxFuel`. Pickups and kills are atomic: one grant, then the source is spent.
