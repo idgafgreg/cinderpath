@@ -2,7 +2,7 @@ import { PLAYER_DEF, ZONE_DEF } from "../content/catalog.js";
 import { createInput } from "./input.js";
 import { clearSave, loadGhost, loadSave, writeCheckpoint, writeGhost } from "./persist.js";
 import { createRenderer } from "./render.js";
-import { PHASE, createGame, snapshot, step } from "./sim.js";
+import { PHASE, createGame, snapshot, step, weatherFor } from "./sim.js";
 
 const params = new URLSearchParams(window.location.search);
 const seed = Number(params.get("seed") || 1);
@@ -19,6 +19,7 @@ const hud = {
   stats: document.querySelector("[data-stats]"),
   debug: document.querySelector("[data-debug]"),
   oil: document.querySelector("[data-oil]"),
+  weather: document.querySelector("[data-weather]"),
 };
 
 const input = createInput();
@@ -74,6 +75,7 @@ function paint(events) {
   hud.fuelFill.style.transform = `scaleX(${fuelPct})`;
   hud.fuelFill.dataset.low = fuelPct < 0.28 ? "true" : "false";
   if (hud.oil) hud.oil.hidden = !state.upgrades?.brightOil;
+  if (hud.weather) hud.weather.textContent = weatherFor(state).id;
   hud.phase.textContent = state.phase;
 
   hud.objective.textContent = state.phase === PHASE.PLAY ? nextObjective() : "Keep the lantern alive";

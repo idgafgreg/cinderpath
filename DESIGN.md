@@ -26,7 +26,7 @@ Title → walk the plane → lantern arc → ash wight → wayshrine checkpoint 
 ## Space
 
 One plane, y = 0. Road along +X. Bounds `x -4..68`, `z -4.4..4.4`.
-Wayshrine checkpoint at `30.4, 0`. Ash gate at `x 32.7..33.8` until the wayshrine is lit. Ember hearth win at `62, 0`.
+Wayshrine checkpoint at `30.4, 0`. Ash gate at `x 32.7..33.8` until the wayshrine is lit. Past the gate (`x >= 33.8`) the weather is ashnight: thicker fog, dimmer moon. Ember hearth win at `62, 0`. The lantern and bright oil change how far you can read the road. They are not a second meter.
 
 ## Economy
 

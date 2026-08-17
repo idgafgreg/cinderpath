@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import { PLAYER_DEF, ZONE_DEF } from "../content/catalog.js";
-import { PHASE, STANCE } from "./sim.js";
+import { ZONE_DEF } from "../content/catalog.js";
+import { PHASE, STANCE, lanternLight, weatherFor } from "./sim.js";
 
 const COLORS = {
   ground: 0x1b1712,
@@ -26,12 +26,13 @@ export function createRenderer(canvas) {
   renderer.shadowMap.enabled = false;
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x0c0a08, 0.028);
+  scene.fog = new THREE.FogExp2(0x0c0a08, 0.026);
 
   const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 220);
   const camOffset = new THREE.Vector3(-11, 13.5, 11);
 
-  scene.add(new THREE.AmbientLight(0x6b6258, 0.5));
+  const ambient = new THREE.AmbientLight(0x6b6258, 0.5);
+  scene.add(ambient);
   const moon = new THREE.DirectionalLight(0x8ea0b5, 0.32);
   moon.position.set(-8, 18, -6);
   scene.add(moon);
@@ -83,9 +84,14 @@ export function createRenderer(canvas) {
       const p = state.player;
       playerMesh.position.set(p.x, 0, p.z);
       playerMesh.rotation.y = Math.atan2(p.facingX, p.facingZ);
+      const light = lanternLight(state);
+      const sky = weatherFor(state);
       lantern.position.set(p.x + p.facingX * 0.35, 1.35, p.z + p.facingZ * 0.35);
-      lantern.intensity = 0.6 + (p.fuel / PLAYER_DEF.maxFuel) * 2.1;
-      lantern.distance = 5 + (p.fuel / PLAYER_DEF.maxFuel) * 5;
+      lantern.intensity = light.intensity;
+      lantern.distance = light.range;
+      scene.fog.density += (sky.fog - scene.fog.density) * 0.08;
+      moon.intensity += (sky.moon - moon.intensity) * 0.08;
+      ambient.intensity += (sky.ambient - ambient.intensity) * 0.08;
 
       const body = playerMesh.getObjectByName("body");
       if (body) {

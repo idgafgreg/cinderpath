@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { ENEMY_DEFS, PLAYER_DEF, validateCatalog } from "../content/catalog.js";
-import { PHASE, STANCE, createGame, emptyInput, serializeGhost, serializeSave, step, swingFor } from "../src/sim.js";
+import { PHASE, STANCE, createGame, emptyInput, lanternLight, serializeGhost, serializeSave, step, swingFor, weatherFor } from "../src/sim.js";
 
 function flush(state, input, seconds, hz = 60) {
   const dt = 1 / hz;
@@ -255,4 +255,30 @@ test("ghost replays a winning walk and never deals damage", () => {
   assert.ok(replay.ghost.x > recorded.player.x - 6);
   assert.ok(replay.player.fuel > fuel - 8, "ghost must not hit the living wickwarden");
   assert.equal(replay.ghost.solid, false);
+});
+
+test("the second road is ashnight and the first road is dusk", () => {
+  const dusk = playable("combat");
+  const night = playable("blocker");
+  assert.equal(weatherFor(dusk).id, "dusk");
+  assert.equal(weatherFor(night).id, "ashnight");
+  assert.ok(weatherFor(night).fog > weatherFor(dusk).fog);
+  assert.ok(weatherFor(night).moon < weatherFor(dusk).moon);
+  assert.equal(dusk.player.ward, undefined);
+  assert.equal(night.player.hp, undefined);
+});
+
+test("oil widens the lantern in ashnight without adding a meter", () => {
+  const dry = playable("blocker");
+  const oiled = playable("oil");
+  oiled.upgrades.brightOil = true;
+  oiled.player.x = dry.player.x;
+  oiled.player.fuel = dry.player.fuel;
+  const a = lanternLight(dry);
+  const b = lanternLight(oiled);
+  assert.equal(weatherFor(dry).id, "ashnight");
+  assert.ok(b.range > a.range);
+  assert.ok(b.intensity > a.intensity);
+  assert.equal(PLAYER_DEF.maxFuel, 100);
+  assert.equal(oiled.player.hp, undefined);
 });

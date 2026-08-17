@@ -69,10 +69,10 @@ Combat is a state machine. Hits come from wedge contact during an `active` windo
 
 Only after this road stays green:
 
-1. A night-weather modifier that changes readability, not meters
-2. Authored encounter waves on the second road
-3. A short directed ending after the hearth
-4. A quieter mix: distinct slam / spit / oil cues
+1. Authored encounter waves on the second road
+2. A short directed ending after the hearth
+3. A quieter mix: distinct slam / spit / oil cues
+4. Ash motes that thicken only in ashnight, still not a meter
 
 ## License
 

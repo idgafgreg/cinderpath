@@ -4,6 +4,7 @@ import {
   ITEM_DEFS,
   PLAYER_DEF,
   UPGRADE_DEFS,
+  WEATHER_DEFS,
   ZONE_DEF,
   validateCatalog,
 } from "../content/catalog.js";
@@ -38,6 +39,24 @@ export function swingFor(state) {
 export function drainFor(state) {
   const scale = state.upgrades?.brightOil ? UPGRADE_DEFS.brightOil.drainScale : 1;
   return PLAYER_DEF.fuelDrainPerSecond * scale;
+}
+
+export function weatherFor(state) {
+  const gate = ZONE_DEF.gates[0];
+  const pastGate = state.player.x >= gate.maxX;
+  return pastGate ? WEATHER_DEFS.ashnight : WEATHER_DEFS.dusk;
+}
+
+export function lanternLight(state) {
+  const weather = weatherFor(state);
+  const fuel = Math.max(0, Math.min(1, state.player.fuel / PLAYER_DEF.maxFuel));
+  let range = weather.lanternRange * (0.55 + 0.45 * fuel);
+  let intensity = weather.lanternIntensity * (0.38 + 0.62 * fuel);
+  if (state.upgrades?.brightOil) {
+    range += UPGRADE_DEFS.brightOil.lanternRangeBonus;
+    intensity += UPGRADE_DEFS.brightOil.lanternIntensityBonus;
+  }
+  return { range, intensity, weather: weather.id, fog: weather.fog, moon: weather.moon, ambient: weather.ambient };
 }
 
 export function mulberry32(seed) {
@@ -709,6 +728,7 @@ export function snapshot(state) {
     pickupsLeft: state.pickups.filter((p) => !p.taken).length,
     litShrines: [...state.litShrines],
     upgrades: { ...state.upgrades },
+    weather: weatherFor(state).id,
     ghost: state.ghost ? { x: state.ghost.x, z: state.ghost.z } : null,
     stats: { ...state.stats },
   };

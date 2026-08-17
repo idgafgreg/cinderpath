@@ -127,6 +127,27 @@ export const UPGRADE_DEFS = Object.freeze({
   brightOil: Object.freeze({
     rangeBonus: 0.5,
     drainScale: 0.62,
+    lanternRangeBonus: 4.2,
+    lanternIntensityBonus: 1.15,
+  }),
+});
+
+export const WEATHER_DEFS = Object.freeze({
+  dusk: Object.freeze({
+    id: "dusk",
+    fog: 0.026,
+    moon: 0.32,
+    ambient: 0.5,
+    lanternRange: 9.6,
+    lanternIntensity: 2.25,
+  }),
+  ashnight: Object.freeze({
+    id: "ashnight",
+    fog: 0.07,
+    moon: 0.065,
+    ambient: 0.13,
+    lanternRange: 6.1,
+    lanternIntensity: 2.55,
   }),
 });
 
