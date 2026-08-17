@@ -2,7 +2,11 @@
 
 An original lantern-road action slice and the agent skills used to build it.
 
+![Cinderpath title](docs/title.png)
+
 You are the last wickwarden. The road is being eaten by ash. Your lantern is your life. Walk the flat path, spend wick to swing, step out of a wight's telegraph, gather cinders, and put the fire on the wayshrine before the flame dies.
+
+**Play:** [idgafgreg.github.io/cinderpath](https://idgafgreg.github.io/cinderpath/)
 
 Play locally:
 
