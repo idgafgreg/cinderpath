@@ -2,7 +2,7 @@
 
 **A little light. An endless road.**
 
-An atmospheric endless runner for phones and desktop browsers. Carry a lantern through Emberwood, the Sunken Sanctum, and Golden Reach. Dodge stones, jump roots, slide beneath gates, and chase a new personal best. Every unlock is earned through play: no ads, purchases, loot boxes, or account requirement in the game.
+An illustrated woodland endless runner for phones and desktop browsers. Play a fox courier delivering lantern light through the Wickwood. Carry a lantern through Emberwood, the Sunken Sanctum, and Golden Reach. Dodge stones, jump roots, slide beneath gates, and chase a new personal best. Every unlock is earned through play: no ads, purchases, loot boxes, or account requirement in the game.
 
 ![Cinderpath on desktop](docs/runner-home.png)
 
@@ -49,7 +49,7 @@ Hits drain your lantern. Green oil refills it. Violet magnets gather cinders fro
 
 ## Engineering
 
-The runner uses vanilla ES modules and a custom Canvas 2D perspective renderer. It keeps the simulation separate from presentation, runs gameplay at a fixed 60 Hz, checks swept collision at the crossing position, generates reachable escape routes, and settles run rewards once. There is no runtime framework, external font, remote image, payment service, or analytics dependency.
+The runner uses vanilla ES modules and a custom Canvas 2D perspective renderer. It keeps the simulation separate from presentation, runs gameplay at a fixed 60 Hz, checks swept collision at the crossing position, generates reachable escape routes, and settles run rewards once. There is no runtime framework, remotely loaded font, remote image, payment service, or analytics dependency.
 
 | Module | Responsibility |
 | --- | --- |
@@ -61,7 +61,7 @@ The runner uses vanilla ES modules and a custom Canvas 2D perspective renderer. 
 | `runner/audio.js` | Gesture-started synthesized soundtrack and event cues |
 | `sw.js`, `scripts/build.mjs` | Offline shell and reproducible static build |
 
-`npm test` runs **80 tests and 21 classic fixture checks**, including a 100,000-row fairness check and a damage-free 5 km simulated run. These establish mechanical correctness, not user retention or physical-device performance. See [QA notes](docs/QA.md), [design](DESIGN.md), and [portfolio kit](docs/PORTFOLIO.md).
+`npm test` runs **83 tests and 21 classic fixture checks**, including a 100,000-row fairness check and a damage-free 5 km simulated run. These establish mechanical correctness, not user retention or physical-device performance. See [art direction and references](docs/ART-DIRECTION.md), [QA notes](docs/QA.md), [design](DESIGN.md), and [portfolio kit](docs/PORTFOLIO.md).
 
 Debug a repeatable run with `/?seed=7&debug=1`. The debug output shows real simulation state; it does not grant rewards or invulnerability.
 
@@ -75,4 +75,4 @@ Original design: [classic-design.md](docs/classic-design.md). Original agent pro
 
 `dist/` can be hosted on a static HTTPS host. The included Pages workflow builds and uploads the site when manually dispatched; GitHub Pages must first be configured to use GitHub Actions. Sites hosting is associated through `.openai/hosting.json`; publish only the tested committed source.
 
-MIT. See [LICENSE](LICENSE). The procedural artwork, UI, and synthesized runner music are included in this repository. Temple Run and Subway Surfers are design references, not asset sources or affiliations.
+Code and original artwork: MIT. See [LICENSE](LICENSE). Bree Serif is bundled under its own [SIL Open Font License](assets/BreeSerif-OFL.txt). The procedural artwork, UI, and synthesized runner music are included in this repository. Temple Run and Subway Surfers are design references, not asset sources or affiliations.

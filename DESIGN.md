@@ -47,3 +47,7 @@ Gameplay and reward tests pass; all 100,000 generated test rows are fair; the sa
 ## Honest limits
 
 This is an original indie web runner, not a claim of feature or production parity with Temple Run or Subway Surfers. Native app-store packaging, cloud saves, online leaderboards, bespoke 3D animation, controller support, assistive non-visual gameplay, and physical-device performance certification are outside this release. Player research and retention data are still needed before claiming the game is addictive or broadly validated.
+
+## Lantern Post art direction
+
+The runner now uses an illustrated woodland delivery theme: an original fox courier, ink contours, cloth and brass props, carved timber controls, and paper journal menus. `runner/art.js` owns shared character drawing and gait poses; `runner/render.js` composes the camp, track, scenery, and effects. Wardrobe portraits use the same character rig as the game. Full reference comparisons, visual decisions, and verification notes are in [ART-DIRECTION.md](docs/ART-DIRECTION.md).

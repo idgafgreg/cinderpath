@@ -22,7 +22,7 @@ It started as a lantern-combat prototype. I wanted to turn it into something you
 
 Under the hood, it has a fixed-step game simulation, seeded obstacle patterns with a guaranteed escape route, procedural Canvas artwork, a synthesized soundtrack, and an offline PWA shell. I also built checks for the less visible parts: collision timing, corrupt saves, duplicate rewards, and daily-run fairness.
 
-The current suite includes 80 tests and 21 original fixture checks. Next, I’m looking for feedback from real players on controls, pacing, and what makes them want another run.
+The current suite includes 83 tests and 21 original fixture checks. Next, I’m looking for feedback from real players on controls, pacing, and what makes them want another run.
 
 Play: https://cinderpath.alesnargregory.chatgpt.site
 Code: https://github.com/idgafgreg/cinderpath/tree/codex/cinderpath-runner

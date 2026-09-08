@@ -6,12 +6,12 @@ export const RULES = freeze({ step: 1 / 60, laneSpeed: 9, baseSpeed: 15, maxSpee
   rowGap: 32, viewDistance: 185, fuelDrain: 1.1, hitCost: 32, jumpDuration: .86,
   slideDuration: .86, jumpHeight: 1.65, feverAt: 24, feverDuration: 7 });
 export const BIOMES = freeze([
-  { id: 'wood', name: 'Emberwood', subtitle: 'Where the last light begins', sky: ['#0a2028','#44615c'], fog: '#789080', ground: '#172e2c', road: ['#42524b','#394a44'], edge: '#748270', trees: ['#193b35','#285347','#366456'], accent: '#ffbb69' },
-  { id: 'ruins', name: 'The Sunken Sanctum', subtitle: 'Old stones. Unfinished stories.', sky: ['#171e39','#595479'], fog: '#9792ac', ground: '#292b42', road: ['#555569','#494b60'], edge: '#8b859a', trees: ['#343754','#474263','#605779'], accent: '#b5b3ff' },
-  { id: 'dawn', name: 'Golden Reach', subtitle: 'Even the longest night ends', sky: ['#3e354a','#cf9265'], fog: '#e2b88b', ground: '#655345', road: ['#8b7760','#7c6b56'], edge: '#c2a77e', trees: ['#765b43','#9d7244','#c29452'], accent: '#ffe09b' },
+  { id: 'wood', name: 'Emberwood', subtitle: 'Where the last light begins', sky: ['#213f39','#91aa88'], fog: '#abc09b', ground: '#385442', road: ['#91866c','#b0a181'], edge: '#657b50', trees: ['#254c3d','#3e654a','#658159'], accent: '#ffbb69' },
+  { id: 'ruins', name: 'The Sunken Sanctum', subtitle: 'Old stones. Unfinished stories.', sky: ['#171e39','#595479'], fog: '#9792ac', ground: '#292b42', road: ['#969385','#b5af96'], edge: '#8b859a', trees: ['#343754','#474263','#605779'], accent: '#b5b3ff' },
+  { id: 'dawn', name: 'Golden Reach', subtitle: 'Even the longest night ends', sky: ['#3e354a','#cf9265'], fog: '#e2b88b', ground: '#655345', road: ['#b49a75','#c8b18a'], edge: '#c2a77e', trees: ['#765b43','#9d7244','#c29452'], accent: '#ffe09b' },
 ]);
 export const CLOAKS = freeze([
-  { id: 'ember', name: 'Wickwarden', desc: 'A small flame. A long way home.', color: '#de7047', trim: '#ffd591', price: 0, level: 1 },
+  { id: 'ember', name: 'Wickwarden', desc: 'A small flame. A long way home.', color: '#aa694a', trim: '#ffd591', price: 0, level: 1 },
   { id: 'moss', name: 'Mosskeeper', desc: 'For those who take the quiet path.', color: '#52947b', trim: '#cbe8a7', price: 150, level: 2 },
   { id: 'moon', name: 'Moonweaver', desc: 'A little piece of the night sky.', color: '#7c7dc1', trim: '#d8d6ff', price: 350, level: 3 },
   { id: 'rose', name: 'Rose of Ash', desc: 'Something beautiful survived.', color: '#c66688', trim: '#ffd7d5', price: 650, level: 4 },

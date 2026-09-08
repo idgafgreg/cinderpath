@@ -1,6 +1,6 @@
 // Original synthesized pentatonic score and event cues. Starts only on a gesture.
 export function createSound() {
-  let ctx=null,master=null,enabled=true,nextNote=0,note=0;
+  let ctx=null,master=null,enabled=true,nextNote=0,note=0,lastFoot=-1,lastAction='run';
   function unlock() {
     if(!enabled)return;
     try {
@@ -19,7 +19,11 @@ export function createSound() {
   return {
     unlock,
     setEnabled(value){enabled=value;if(master)master.gain.value=value?.23:0;},
-    tick(running){if(!enabled||!ctx||!running)return;if(ctx.currentTime>nextNote){const notes=[220,329.63,440,493.88,392,329.63,293.66,329.63];tone(notes[note%8],1.8,.06);if(note%4===0)tone(110,2.9,.055);nextNote=ctx.currentTime+.43;note++;}},
+    ui(){unlock();tone(340,.055,.075,0,'triangle',170);},
+    action(action){unlock();if(action==='jump')tone(180,.13,.08,0,'sine',310);else if(action==='slide')tone(170,.12,.06,0,'triangle',90);},
+    tick(running,run){
+      if(run){const foot=Math.floor(run.distance/3);if(run.action==='run'&&foot!==lastFoot){tone(78,.035,.03,0,'triangle',42);lastFoot=foot;}if(lastAction==='jump'&&run.action==='run')tone(90,.065,.065,0,'triangle',44);lastAction=run.action;}
+if(!enabled||!ctx||!running)return;if(ctx.currentTime>nextNote){const notes=[293.66,440,369.99,329.63,0,246.94,293.66,0,369.99,493.88,440,0,329.63,293.66,246.94,0];if(notes[note%16])tone(notes[note%16],.85,.055,0,'triangle');if(note%4===0)tone(note%8===0?146.83:123.47,2.2,.035);nextNote=ctx.currentTime+.54;note++;}},
     events(events,combo=0){for(const e of events){
       if(e.type==='cinder')tone([659.25,783.99,880,987.77,1174.66][combo%5],.13,.12);
       else if(e.type==='hit')tone(130,.23,.3,0,'triangle',45);

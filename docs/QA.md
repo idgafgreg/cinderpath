@@ -44,3 +44,7 @@ Before a broad portfolio announcement, give five players the public demo on real
 ## Hosted delivery
 
 Version 1 deployed successfully at https://cinderpath.alesnargregory.chatgpt.site. The GitHub Actions verification for the implementation commit passed. Source review: https://github.com/idgafgreg/cinderpath/pull/1.
+
+## Lantern Post visual revision
+
+The updated suite passes 83 tests and all 21 classic fixture checks. Added gait continuity and finite-geometry checks across run, jump, slide, front/rear views, and scenery variants. The new art, font, and icon vocabulary are included in the offline shell. The 390 × 844 and 320 × 568 layouts were inspected; portrait distortion and compact record/button overlap were fixed. See ART-DIRECTION.md for the reference comparison.
