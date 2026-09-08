@@ -8,6 +8,7 @@ export function createInput(root = document) {
     restart: false,
     start: false,
     mute: false,
+    focusLost: false,
   };
 
   const pressed = new Set();
@@ -34,6 +35,7 @@ export function createInput(root = document) {
   }
 
   function onKeyDown(event) {
+    if (event.code.startsWith("Arrow")) event.preventDefault();
     keys.add(event.code);
     if (event.code === "Space") {
       event.preventDefault();
@@ -143,7 +145,8 @@ export function createInput(root = document) {
   window.addEventListener("keydown", onKeyDown);
   window.addEventListener("keyup", onKeyUp);
   window.addEventListener("pointerdown", onPointerDown);
-  window.addEventListener("blur", () => keys.clear());
+  function onBlur() { keys.clear(); pressed.clear(); clearStick(); syncAxes(); state.focusLost = true; }
+  window.addEventListener("blur", onBlur);
   window.addEventListener("touchstart", revealTouch, { passive: true, once: true });
 
   if (window.matchMedia?.("(pointer: coarse)").matches) revealTouch();
@@ -163,12 +166,21 @@ export function createInput(root = document) {
       state.restart = false;
       state.start = false;
       state.mute = false;
+      state.focusLost = false;
       return frame;
     },
     dispose() {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
       window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("blur", onBlur);
+      window.removeEventListener("touchstart", revealTouch);
+      stickEl?.removeEventListener("pointerdown", onStickDown);
+      stickEl?.removeEventListener("pointermove", onStickMove);
+      stickEl?.removeEventListener("pointerup", clearStick);
+      stickEl?.removeEventListener("pointercancel", clearStick);
+      swingEl?.removeEventListener("pointerdown", onSwing);
+      soundEl?.removeEventListener("pointerdown", onSound);
     },
   };
 }

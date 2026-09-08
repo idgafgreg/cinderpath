@@ -1,14 +1,22 @@
-name: test
+name: Verify Cinderpath
 on:
   push:
-    branches: [main]
+    branches: [main, 'codex/**']
   pull_request:
+permissions:
+  contents: read
 jobs:
-  sim:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: '22'
       - run: npm test
+      - run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cinderpath-web
+          path: dist
+          retention-days: 14

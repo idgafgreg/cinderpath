@@ -1,11 +1,18 @@
 {
   "name": "cinderpath",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
-  "description": "Keep the last lantern alive on the ash road.",
+  "description": "An atmospheric mobile-first endless runner. Carry the last light, earn every unlock.",
   "scripts": {
-    "test": "node --test game/tests/sim.test.js game/tests/persist.test.js game/tests/audio.test.js && node game/tests/fixture-walk.mjs",
-    "start": "npx --yes serve -l 4173 ."
+    "start": "node scripts/serve.mjs",
+    "dev": "node scripts/serve.mjs",
+    "test": "node --test game/tests/*.test.js runner/tests/*.test.js && node game/tests/fixture-walk.mjs",
+    "build": "node scripts/build.mjs",
+    "preview": "node scripts/serve.mjs --dist",
+    "check": "npm test && npm run build"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

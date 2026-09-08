@@ -1,31 +1,29 @@
-# Agent guide
+# Cinderpath agent guide
 
-Repo: **Cinderpath**
+Cinderpath is a mobile-first endless runner, with the original lantern-combat prototype preserved at `classic.html`.
 
-This is a playable isometric web game plus the skills that built it.
-
-## Before you edit
+## Before editing
 
 1. Read `README.md` and `DESIGN.md`.
-2. Load the single narrowest file under `agent-skills/`.
-3. Do not copy files out of any other skills repository into this tree.
+2. Apply the narrowest relevant local skill. `agent-skills/iterate-until-playable` applies across both modes; the older combat/world skills describe classic mode.
+3. Keep changes testable and verify the real browser UI. Run `npm test` and `npm run build` before claiming a release is playable.
 
-## Truth
+## Sources of truth
 
-- Content: `game/content/catalog.js`
-- Simulation: `game/src/sim.js`
-- Proof: `game/tests/sim.test.js` and the `?fixture=` routes
-- Presentation may never invent hits, pickups, or fuel
+- Runner content: `runner/content.js` (deeply frozen)
+- Runner simulation: `runner/sim.js` (fixed-step state, seeded patterns, swept contact)
+- Runner rewards and storage: `runner/profile.js`
+- Runner presentation: `runner/render.js`, `runner/main.js`, `runner/style.css`
+- Classic content / simulation: `game/content/catalog.js`, `game/src/sim.js`
+- Proof: both test directories, classic fixture walk, and browser playthroughs
 
-## Hard rules
+## Rules
 
-- Cinderpath is a different game from Hollowmere. No shared fiction, characters, systems, art, or pipeline. Do not import farm, parish, NPC, or Unity conventions.
-- One gameplay plane at y = 0
-- One life resource: lantern fuel
-- Authored objects are frozen; runtime instances are created in `createGame`
-- Placeholders must stay obvious and keep real radius / timing
-- `npm test` before you claim playable
-
-## Suggested order
-
-`build-vertical-slice` → `author-flat-world` / `design-combat-verbs` / `define-enemy-content` → `keep-lantern-loop` → `test-playable-slice` → `ship-web-game`
+- Fuel is the sole life resource. Rush charge and temporary power-ups are not extra health bars.
+- Simulation alone decides hits, pickups, score, and rewards. Rendering only reads state.
+- The runner uses a flat lane/distance track; jump and slide are timed actions with visual height, not an additional world plane.
+- Every generated row must contain a reachable open lane. Preserve the fairness property test.
+- No ads, purchases, paid shortcuts, loot boxes, forced daily streaks, trackers, or account requirement in the game itself.
+- Keep runner assets self-contained for offline play. The archived classic mode retains its existing CDN dependency.
+- Cinderpath has its own fiction, characters, systems, art and pipeline. Do not import Hollowmere content or unrelated skill files.
+- Source Sites credentials must never enter the repository or logs. Deploy the exact tested, committed build.
