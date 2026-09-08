@@ -37,6 +37,10 @@ Screenshots show actual gameplay and locally earned QA progression. No test acco
 
 ## Release limits and next playtest
 
-No physical iPhone or Android device has been tested in this session. Install prompts vary by browser. Classic mode retains external Three.js/font dependencies and is outside the offline shell. Progress is local to one browser; there is no account sync or global leaderboard. The hosted review is initially owner-private, and GitHub Pages still requires repository configuration before its manual deployment workflow can run.
+No physical iPhone or Android device has been tested in this session. Install prompts vary by browser. Classic mode retains external Three.js/font dependencies and is outside the offline shell. Progress is local to one browser; there is no account sync or global leaderboard. The hosted demo is public with the owner’s approval. GitHub Pages still requires repository configuration before its manual deployment workflow can run.
 
 Before a broad portfolio announcement, give five players the public demo on real phones. Observe their first three runs: time to first action, missed swipes, obstacle readability, first-death cause, and whether they voluntarily retry. Use their observations to adjust pacing. Record performance and battery behavior on those devices before making performance claims.
+
+## Hosted delivery
+
+Version 1 deployed successfully at https://cinderpath.alesnargregory.chatgpt.site. The GitHub Actions verification for the implementation commit passed. Source review: https://github.com/idgafgreg/cinderpath/pull/1.

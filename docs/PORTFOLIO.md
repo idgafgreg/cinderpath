@@ -24,8 +24,9 @@ Under the hood, it has a fixed-step game simulation, seeded obstacle patterns wi
 
 The current suite includes 80 tests and 21 original fixture checks. Next, I’m looking for feedback from real players on controls, pacing, and what makes them want another run.
 
-Play: [insert verified public demo URL]
-Code: https://github.com/idgafgreg/cinderpath [check repository audience before posting]
+Play: https://cinderpath.alesnargregory.chatgpt.site
+Code: https://github.com/idgafgreg/cinderpath/tree/codex/cinderpath-runner
+Implementation review: https://github.com/idgafgreg/cinderpath/pull/1
 
 What would you improve after your first three runs?
 

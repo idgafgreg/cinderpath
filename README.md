@@ -8,7 +8,7 @@ An atmospheric endless runner for phones and desktop browsers. Carry a lantern t
 
 ## Play
 
-[Hosted review build](https://cinderpath.swoony-bow-7068.chatgpt.site) · access is initially private to the project owner. Make the demo public before using that link on a resume or LinkedIn.
+[Play Cinderpath](https://cinderpath.alesnargregory.chatgpt.site) · public web demo.
 
 With Node.js 22 or later:
 
