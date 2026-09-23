@@ -1,72 +1,62 @@
 # Cinderpath
 
-An original lantern-road action slice and the agent skills used to build it.
+**A small 3D action game that runs in your browser, built with JavaScript and three.js. The game logic is a deterministic simulation, checked by 70 automated tests on every push.**
 
-![Cinderpath title](docs/title.png)
+[![test](https://github.com/idgafgreg/cinderpath/actions/workflows/test.yml/badge.svg)](https://github.com/idgafgreg/cinderpath/actions/workflows/test.yml)
+
+### ▶ [Play Cinderpath in your browser](https://idgafgreg.github.io/cinderpath/)
+
+![Cinderpath title screen](docs/title.png)
 
 You are the last wickwarden. The road is being eaten by ash. Your lantern is your life. Walk the flat path, spend wick to swing, step out of a wight's telegraph, light the wayshrine to open the gate, keep range on the snuffer, and put the fire on the ember hearth.
 
-**Play:** [idgafgreg.github.io/cinderpath](https://idgafgreg.github.io/cinderpath/)
+**Controls:** WASD move · Space / click swing · Esc pause · R restart · M sound on/off
 
-Play locally:
+## What's worth looking at
+
+- **Game logic and graphics are separate.** `game/src/sim.js` is a deterministic simulation: the same seed and the same inputs always produce the same result. The renderer only draws what the simulation reports; it isn't allowed to decide hits, pickups, or fuel.
+- **Combat is a state machine.** Every attack has startup, active and recovery windows (see the timing table in [`DESIGN.md`](DESIGN.md)). A hit only lands during the active window, once per swing and target.
+- **Every scenario is reachable by URL.** `?fixture=combat`, `?fixture=snuffer`, `?fixture=hearth` and others drop you straight into a specific moment of the game, which makes bugs easy to reproduce.
+- **70 automated checks run on every push.** 49 unit tests cover the simulation, save/load and audio. Another 21 checks replay each fixture through the real simulation, headless, and assert what happened: *"closed gate holds the player"*, *"snuffer steps back to keep range"*, *"lantern out loses"*.
+
+## Screenshots
+
+| Combat | Gate | Ember hearth |
+| --- | --- | --- |
+| ![Combat](docs/combat.png) | ![Gate](docs/gate.png) | ![Ember hearth](docs/hearth.png) |
+
+## Run it locally
+
+Tested on Node 22 (the version CI uses).
 
 ```bash
-npm test
-npx --yes serve -l 4173 .
+npm test                     # 49 unit tests + 21 fixture checks
+npx --yes serve -l 4173 .    # then open http://localhost:4173/
 ```
 
-Then open http://localhost:4173/
+Jump to a specific scenario:
 
-Review states:
+`/?fixture=combat` · `/?fixture=lowfuel` · `/?fixture=shrine` · `/?fixture=gate` · `/?fixture=snuffer` · `/?fixture=hearth` · `/?fixture=blocker` · `/?fixture=oil` · `/?debug=1&seed=7`
 
-- `/?fixture=combat`
-- `/?fixture=lowfuel`
-- `/?fixture=shrine`
-- `/?fixture=gate`
-- `/?fixture=snuffer`
-- `/?fixture=hearth`
-- `/?fixture=blocker`
-- `/?fixture=oil`
-- `/?debug=1&seed=7`
-
-Controls: **WASD** move · **Space / click** swing · **Esc** pause · **R** restart · **M / sound chip** sound on/off (remembered)
-
-## Why this repo exists
-
-[MengTo/Skills](https://github.com/MengTo/Skills) is a public MIT library of agent operating procedures for design and playable web games. We studied that library — the folder contract, "prompts are assets", "specs beat vibes", vertical slices, data-versus-runtime, combat clocks, and fixture-backed QA — then wrote **our own** skills and **our own** game.
-
-Nothing in `agent-skills/` is a copy of Meng To's files. The methods are adapted. The fiction, catalog, and simulation are original.
-
-This is not Hollowmere. Cinderpath has no farm, parish, villagers, or Unity pipeline — different fiction, different repo, different game.
-
-## Skills
-
-Load the narrowest matching file before editing the game:
-
-| Need | Skill |
-| --- | --- |
-| One playable loop | [`build-vertical-slice`](agent-skills/build-vertical-slice/SKILL.md) |
-| Route, collision, lights | [`author-flat-world`](agent-skills/author-flat-world/SKILL.md) |
-| Attack timing | [`design-combat-verbs`](agent-skills/design-combat-verbs/SKILL.md) |
-| New enemy as data | [`define-enemy-content`](agent-skills/define-enemy-content/SKILL.md) |
-| Wick economy | [`keep-lantern-loop`](agent-skills/keep-lantern-loop/SKILL.md) |
-| Proof | [`test-playable-slice`](agent-skills/test-playable-slice/SKILL.md) |
-| Make / judge loop | [`iterate-until-playable`](agent-skills/iterate-until-playable/SKILL.md) |
-| Release | [`ship-web-game`](agent-skills/ship-web-game/SKILL.md) |
-
-## Architecture
+## How it's built
 
 ```
-catalog.js   immutable content (player, enemies, zone, fixtures)
-sim.js       deterministic runtime (stances, contact, win/lose)
-input.js     edge-triggered commands
-audio.js     quiet synthesized mix driven by sim events
-render.js    honest low-poly placeholders driven by sim events
+game/content/catalog.js   immutable content: player, enemies, zone, fixtures
+game/src/sim.js           deterministic runtime: stances, contact, win/lose
+game/src/input.js         edge-triggered commands
+game/src/audio.js         quiet synthesized mix driven by sim events
+game/src/render.js        low-poly three.js placeholders driven by sim events
+game/tests/               unit tests + headless fixture walk
 ```
 
-Combat is a state machine. Hits come from wedge contact during an `active` window, once per action and target. Meshes do not decide damage.
+No build step and no framework: plain ES modules, three.js loaded from a CDN, and GitHub Actions running `npm test` on every push and pull request.
+
+## Built with AI agents, on a written process
+
+I built Cinderpath with AI coding agents working from written procedures in [`agent-skills/`](agent-skills/README.md), one file per kind of change (vertical slice, combat verbs, enemy content, testing, release), and a hard rule that nothing counts as playable until `npm test` passes.
+
+The approach is adapted from [MengTo/Skills](https://github.com/MengTo/Skills), a public MIT library of agent procedures for playable web games. Nothing in `agent-skills/` is copied from it; the skills, fiction, content and simulation here are original.
 
 ## License
 
-MIT. See `LICENSE`.
-Methodological debt to [MengTo/Skills](https://github.com/MengTo/Skills) is gratefully noted; their copyright remains theirs.
+MIT. See [`LICENSE`](LICENSE). Methodological debt to [MengTo/Skills](https://github.com/MengTo/Skills) is gratefully noted; their copyright remains theirs.
