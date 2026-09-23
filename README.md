@@ -6,7 +6,7 @@
 
 ### ▶ [Play Cinderpath in your browser](https://idgafgreg.github.io/cinderpath/)
 
-![Cinderpath title screen](docs/title.png)
+![Cinderpath gameplay: stepping out of an ash wight's lunge, then punishing its recovery](docs/demo.gif)
 
 You are the last wickwarden. The road is being eaten by ash. Your lantern is your life. Walk the flat path, spend wick to swing, step out of a wight's telegraph, light the wayshrine to open the gate, keep range on the snuffer, and put the fire on the ember hearth.
 
