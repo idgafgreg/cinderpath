@@ -29,7 +29,8 @@ const hud = {
 
 const input = createInput();
 const view = createRenderer(canvas);
-const audioCtx = typeof window.AudioContext !== "undefined" ? new window.AudioContext() : null;
+let audioCtx = null;
+try { audioCtx = typeof window.AudioContext !== "undefined" ? new window.AudioContext() : null; } catch { /* Audio is optional. */ }
 const audio = createAudio({ ctx: audioCtx });
 audio.setMuted(!loadSoundPref());
 window.addEventListener("pointerdown", () => audio.unlock(), { once: true });
@@ -100,7 +101,7 @@ function paint(events) {
   hud.banner.hidden = !banner;
   if (banner) {
     hud.banner.querySelector("h1").textContent = banner.title;
-    hud.banner.querySelector("p").textContent = banner.body;
+    hud.banner.querySelector("h1 + p").textContent = banner.body;
     hud.banner.querySelector("small").textContent = banner.prompt;
   }
 
@@ -133,6 +134,7 @@ function frame(now) {
   const dt = Math.min(0.033, (now - last) / 1000);
   last = now;
   const commands = input.sample();
+  if (commands.focusLost && state.phase === PHASE.PLAY) commands.pause = true;
   if (commands.restart && !fixture) {
     clearSave();
     checkpoint = null;

@@ -1,10 +1,12 @@
 import { serializeGhost, serializeSave } from "./sim.js";
 
+function safeStorage() { try { return globalThis.localStorage; } catch { return null; } }
+
 export const SAVE_KEY = "cinderpath-save-v1";
 export const GHOST_KEY = "cinderpath-ghost-v1";
 export const SOUND_KEY = "cinderpath-sound-v1";
 
-export function loadSave(storage = globalThis.localStorage) {
+export function loadSave(storage = safeStorage()) {
   if (!storage) return null;
   try {
     const raw = storage.getItem(SAVE_KEY);
@@ -17,19 +19,19 @@ export function loadSave(storage = globalThis.localStorage) {
   }
 }
 
-export function writeCheckpoint(state, storage = globalThis.localStorage) {
+export function writeCheckpoint(state, storage = safeStorage()) {
   if (!storage) return null;
   const blob = serializeSave(state);
-  storage.setItem(SAVE_KEY, JSON.stringify(blob));
+  try { storage.setItem(SAVE_KEY, JSON.stringify(blob)); } catch { return null; }
   return blob;
 }
 
-export function clearSave(storage = globalThis.localStorage) {
+export function clearSave(storage = safeStorage()) {
   if (!storage) return;
-  storage.removeItem(SAVE_KEY);
+  try { storage.removeItem(SAVE_KEY); } catch { /* Storage may be disabled. */ }
 }
 
-export function loadGhost(storage = globalThis.localStorage) {
+export function loadGhost(storage = safeStorage()) {
   if (!storage) return null;
   try {
     const raw = storage.getItem(GHOST_KEY);
@@ -42,15 +44,15 @@ export function loadGhost(storage = globalThis.localStorage) {
   }
 }
 
-export function writeGhost(state, storage = globalThis.localStorage) {
+export function writeGhost(state, storage = safeStorage()) {
   if (!storage) return null;
   const blob = serializeGhost(state);
   if (!blob.samples.length) return null;
-  storage.setItem(GHOST_KEY, JSON.stringify(blob));
+  try { storage.setItem(GHOST_KEY, JSON.stringify(blob)); } catch { return null; }
   return blob;
 }
 
-export function loadSoundPref(storage = globalThis.localStorage) {
+export function loadSoundPref(storage = safeStorage()) {
   if (!storage) return true;
   try {
     const raw = storage.getItem(SOUND_KEY);
@@ -62,7 +64,7 @@ export function loadSoundPref(storage = globalThis.localStorage) {
   }
 }
 
-export function writeSoundPref(soundOn, storage = globalThis.localStorage) {
+export function writeSoundPref(soundOn, storage = safeStorage()) {
   if (!storage) return;
-  storage.setItem(SOUND_KEY, JSON.stringify({ v: 1, muted: !Boolean(soundOn) }));
+  try { storage.setItem(SOUND_KEY, JSON.stringify({ v: 1, muted: !Boolean(soundOn) })); } catch { /* Keep the session playable. */ }
 }

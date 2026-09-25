@@ -1,62 +1,80 @@
 # Cinderpath
 
-**A small 3D action game that runs in your browser, built with JavaScript and three.js. The game logic is a deterministic simulation, checked by 70 automated tests on every push.**
+**A little light. An endless road.**
 
 [![test](https://github.com/idgafgreg/cinderpath/actions/workflows/test.yml/badge.svg)](https://github.com/idgafgreg/cinderpath/actions/workflows/test.yml)
 
-### ▶ [Play Cinderpath in your browser](https://idgafgreg.github.io/cinderpath/)
+An illustrated woodland endless runner for phones and desktop browsers. Play a fox courier delivering lantern light through the Wickwood. Carry a lantern through Emberwood, the Sunken Sanctum, and Golden Reach. Dodge stones, jump roots, slide beneath gates, and chase a new personal best. Every unlock is earned through play: no ads, purchases, loot boxes, or account requirement in the game.
 
-![Cinderpath gameplay: stepping out of an ash wight's lunge, then punishing its recovery](docs/demo.gif)
+![Cinderpath on desktop](docs/runner-home.png)
 
-You are the last wickwarden. The road is being eaten by ash. Your lantern is your life. Walk the flat path, spend wick to swing, step out of a wight's telegraph, light the wayshrine to open the gate, keep range on the snuffer, and put the fire on the ember hearth.
+## Play
 
-**Controls:** WASD move · Space / click swing · Esc pause · R restart · M sound on/off
+[Play Cinderpath](https://cinderpath.alesnargregory.chatgpt.site) · public web demo.
 
-## What's worth looking at
+With Node.js 22 or later:
 
-- **Game logic and graphics are separate.** `game/src/sim.js` is a deterministic simulation: the same seed and the same inputs always produce the same result. The renderer only draws what the simulation reports; it isn't allowed to decide hits, pickups, or fuel.
-- **Combat is a state machine.** Every attack has startup, active and recovery windows (see the timing table in [`DESIGN.md`](DESIGN.md)). A hit only lands during the active window, once per swing and target.
-- **Every scenario is reachable by URL.** `?fixture=combat`, `?fixture=snuffer`, `?fixture=hearth` and others drop you straight into a specific moment of the game, which makes bugs easy to reproduce.
-- **70 automated checks run on every push.** 49 unit tests cover the simulation, save/load and audio. Another 21 checks replay each fixture through the real simulation, headless, and assert what happened: *"closed gate holds the player"*, *"snuffer steps back to keep range"*, *"lantern out loses"*.
+```sh
+npm start
+# http://localhost:4173
+```
 
-## Screenshots
+No dependency installation is needed. To produce and serve the deployment bundle:
 
-| Combat | Gate | Ember hearth |
+```sh
+npm test
+npm run build
+npm run preview
+```
+
+The game is an installable PWA: use your browser’s Install App command, or Share → Add to Home Screen on iPhone. Runner assets work offline after the first full load. HTTPS or localhost is required for installation and service workers. Saves stay on the current browser/device.
+
+## Controls
+
+| Action | Phone | Keyboard |
 | --- | --- | --- |
-| ![Combat](docs/combat.png) | ![Gate](docs/gate.png) | ![Ember hearth](docs/hearth.png) |
+| Change lanes | Swipe left / right or tap arrows | Left / Right or A / D |
+| Jump roots | Swipe up or tap ↑ | Up, W, or Space |
+| Slide under gates | Swipe down or tap ↓ | Down or S |
+| Pause | Pause button | Escape |
+| Sound | Sound button on home / Settings | M during play |
 
-## Run it locally
+Hits drain your lantern. Green oil refills it. Violet magnets gather cinders from other lanes; blue wards block a hit. Collect 24 cinders without a damaging hit to trigger Ember Rush. Pause → Finish & bank ends a run while keeping earned rewards.
 
-Tested on Node 22 (the version CI uses).
+## Built to come back to
 
-```bash
-npm test                     # 49 unit tests + 21 fixture checks
-npx --yes serve -l 4173 .    # then open http://localhost:4173/
-```
+- Three cycling environments and seeded, progressively faster obstacle patterns.
+- Collection combos, seven-second Ember Rush, and instant retries.
+- Warden XP, twelve automatic journey milestones, six cosmetic cloaks, and nine earnable craft levels.
+- A daily UTC-seeded trail with equal base stats, unlimited attempts, and a local best.
+- A synthesized soundtrack, responsive layouts, touch controls, reduced atmospheric motion, and a low-cost render mode.
 
-Jump to a specific scenario:
+## Engineering
 
-`/?fixture=combat` · `/?fixture=lowfuel` · `/?fixture=shrine` · `/?fixture=gate` · `/?fixture=snuffer` · `/?fixture=hearth` · `/?fixture=blocker` · `/?fixture=oil` · `/?debug=1&seed=7`
+The runner uses vanilla ES modules and a custom Canvas 2D perspective renderer. It keeps the simulation separate from presentation, runs gameplay at a fixed 60 Hz, checks swept collision at the crossing position, generates reachable escape routes, and settles run rewards once. There is no runtime framework, remotely loaded font, remote image, payment service, or analytics dependency.
 
-## How it's built
+| Module | Responsibility |
+| --- | --- |
+| `runner/content.js` | Frozen rules, environments, cosmetics, crafts, milestones |
+| `runner/sim.js` | Seeded patterns, timed actions, collisions, fuel, scoring |
+| `runner/profile.js` | Save normalization, progression, atomic run settlement |
+| `runner/render.js` | Bounded procedural scenery, character pose, effects |
+| `runner/main.js` | Input, fixed-step loop, accessible menus, lifecycle |
+| `runner/audio.js` | Gesture-started synthesized soundtrack and event cues |
+| `sw.js`, `scripts/build.mjs` | Offline shell and reproducible static build |
 
-```
-game/content/catalog.js   immutable content: player, enemies, zone, fixtures
-game/src/sim.js           deterministic runtime: stances, contact, win/lose
-game/src/input.js         edge-triggered commands
-game/src/audio.js         quiet synthesized mix driven by sim events
-game/src/render.js        low-poly three.js placeholders driven by sim events
-game/tests/               unit tests + headless fixture walk
-```
+`npm test` runs **83 tests and 21 classic fixture checks**, including a 100,000-row fairness check and a damage-free 5 km simulated run. These establish mechanical correctness, not user retention or physical-device performance. See [art direction and references](docs/ART-DIRECTION.md), [QA notes](docs/QA.md), [design](DESIGN.md), and [portfolio kit](docs/PORTFOLIO.md).
 
-No build step and no framework: plain ES modules, three.js loaded from a CDN, and GitHub Actions running `npm test` on every push and pull request.
+Debug a repeatable run with `/?seed=7&debug=1`. The debug output shows real simulation state; it does not grant rewards or invulnerability.
 
-## Built with AI agents, on a written process
+## Original prototype
 
-I built Cinderpath with AI coding agents working from written procedures in [`agent-skills/`](agent-skills/README.md), one file per kind of change (vertical slice, combat verbs, enemy content, testing, release), and a hard rule that nothing counts as playable until `npm test` passes.
+The original isometric lantern-combat game is preserved at `classic.html`. Its eight `?fixture=` routes, checkpoints, and winning ghosts still work. Old root `?fixture=` links redirect there. Classic mode retains its original Three.js CDN and Google Fonts dependencies and is not included in the offline shell.
 
-The approach is adapted from [MengTo/Skills](https://github.com/MengTo/Skills), a public MIT library of agent procedures for playable web games. Nothing in `agent-skills/` is copied from it; the skills, fiction, content and simulation here are original.
+Original design: [classic-design.md](docs/classic-design.md). Original agent procedures: [agent-skills](agent-skills/README.md). Those procedures were independently written after studying the methodology of [MengTo/Skills](https://github.com/MengTo/Skills); no foreign skill files or game assets were imported. Cinderpath has its own fiction and art.
 
-## License
+## Deployment and license
 
-MIT. See [`LICENSE`](LICENSE). Methodological debt to [MengTo/Skills](https://github.com/MengTo/Skills) is gratefully noted; their copyright remains theirs.
+`dist/` can be hosted on a static HTTPS host. The included Pages workflow builds and uploads the site when manually dispatched; GitHub Pages must first be configured to use GitHub Actions. Sites hosting is associated through `.openai/hosting.json`; publish only the tested committed source.
+
+Code and original artwork: MIT. See [LICENSE](LICENSE). Bree Serif is bundled under its own [SIL Open Font License](assets/BreeSerif-OFL.txt). The procedural artwork, UI, and synthesized runner music are included in this repository. Temple Run and Subway Surfers are design references, not asset sources or affiliations.

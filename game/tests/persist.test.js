@@ -86,3 +86,14 @@ test("sound preference survives a checkpoint clear", () => {
   clearSave(storage);
   assert.equal(loadSoundPref(storage), false);
 });
+
+test("blocked writes cannot crash the classic game", () => {
+  const storage = { getItem() { throw Error('blocked'); }, setItem() { throw Error('quota'); }, removeItem() { throw Error('blocked'); } };
+  const state = createGame({fixture:'combat'});
+  step(state, emptyInput(), 1/60);
+  assert.equal(loadSave(storage), null);
+  assert.doesNotThrow(() => writeCheckpoint(state, storage));
+  assert.doesNotThrow(() => writeGhost(state, storage));
+  assert.doesNotThrow(() => writeSoundPref(false, storage));
+  assert.doesNotThrow(() => clearSave(storage));
+});

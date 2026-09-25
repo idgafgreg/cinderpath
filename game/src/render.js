@@ -63,7 +63,6 @@ export function createRenderer(canvas) {
   ghostMesh.visible = false;
   const enemyMeshes = new Map();
   const telegraphRings = new Map();
-  const ringGeos = new Map();
   const pickupMeshes = new Map();
   root.add(playerMesh, ghostMesh);
 
@@ -160,16 +159,10 @@ export function createRenderer(canvas) {
           const theta = Math.atan2(-tel.facingZ, tel.facingX);
           const half = Math.max(0.12, tel.halfAngle);
           const inner = 0.86 - tel.tighten * 0.7;
-          const key = `${half.toFixed(3)}|${inner.toFixed(3)}|${theta.toFixed(3)}`;
-          let geo = ringGeos.get(key);
-          if (!geo) {
-            geo = new THREE.RingGeometry(inner, 1, 48, 1, theta - half, half * 2);
-            ringGeos.set(key, geo);
-          }
-          if (ring.geometry !== geo) {
-            if (ring.geometry) ring.geometry.dispose();
-            ring.geometry = geo;
-          }
+          // Each ring owns its geometry. Never cache disposed geometries by a
+          // continuously changing angle/clock key (an unbounded memory leak).
+          ring.geometry.dispose();
+          ring.geometry = new THREE.RingGeometry(inner, 1, 32, 1, theta - half, half * 2);
         }
       }
 
