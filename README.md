@@ -6,11 +6,15 @@
 
 An illustrated woodland endless runner for phones and desktop browsers. Play a fox courier delivering lantern light through the Wickwood. Carry a lantern through Emberwood, the Sunken Sanctum, and Golden Reach. Dodge stones, jump roots, slide beneath gates, and chase a new personal best. Every unlock is earned through play: no ads, purchases, loot boxes, or account requirement in the game.
 
-![Cinderpath on desktop](docs/runner-home.png)
+![Cinderpath gameplay: dodging a stone, jumping a root, sliding under gates](docs/runner-demo.gif)
+
+| Home | Phone |
+| --- | --- |
+| ![Cinderpath on desktop](docs/runner-home.png) | ![Cinderpath on a phone](docs/runner-mobile.png) |
 
 ## Play
 
-[Play Cinderpath](https://cinderpath.alesnargregory.chatgpt.site) · public web demo.
+**[Play Cinderpath in your browser](https://idgafgreg.github.io/cinderpath/)** (also at [cinderpath.alesnargregory.chatgpt.site](https://cinderpath.alesnargregory.chatgpt.site)). Works on phones; installable as an app.
 
 With Node.js 22 or later:
 
